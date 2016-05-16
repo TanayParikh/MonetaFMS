@@ -12,6 +12,7 @@
 
 #### Credits
 ZipStorer, by Jaime Olivares
+
   Website: zipstorer.codeplex.com
   Version: 2.35 (March 14, 2010)
 
@@ -24,4 +25,4 @@ MySQL
   Version: 6.9.6
   
 Author: Tanay Parikh
- http://www.tanayparikh.com
+  http://www.tanayparikh.com
