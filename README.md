@@ -22,6 +22,10 @@
 #####MySQL
   Connector & .NET files: https://downloads.mysql.com/archives/c-net/
    | Version: 6.9.6
+   
+#####XAMPP Lite
+  https://sourceforge.net/projects/xampp/files/XAMPP%20Windows/1.7.3/
+   | Version: 1.7.3
   
 #####Author: Tanay Parikh
   http://www.tanayparikh.com
