@@ -11,18 +11,17 @@
 •	All data is stored natively on the user’s device, to ensure sensitive financial information is secure and confidential. The database will be handled through MySQL and local server would be setup through the installation of XAMPP. 
 
 #### Credits
-ZipStorer, by Jaime Olivares
-
+#####ZipStorer, by Jaime Olivares
   Website: zipstorer.codeplex.com
   Version: 2.35 (March 14, 2010)
 
-iTextSharp
+#####iTextSharp
   Website: https://github.com/itext/itextsharp
   Version: 5.5.9
   
-MySQL
+#####MySQL
   Connector & .NET files: https://downloads.mysql.com/archives/c-net/
   Version: 6.9.6
   
-Author: Tanay Parikh
+#####Author: Tanay Parikh
   http://www.tanayparikh.com
