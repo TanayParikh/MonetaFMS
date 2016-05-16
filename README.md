@@ -1,5 +1,7 @@
 # MonetaFMS
 
+## Please visit the application intro site: http://www.monetafms.com
+
 •	A complete financial management business suite, tracking business accounting, including modules for expenses, invoicing and business statistics.
 
 •	Also manages a complete client database, which includes the contact information and appropriate financial statistics.
