@@ -12,16 +12,16 @@
 
 #### Credits
 #####ZipStorer, by Jaime Olivares
-  Website: zipstorer.codeplex.com
-  Version: 2.35 (March 14, 2010)
+  Website: http://zipstorer.codeplex.com
+   | Version: 2.35 (March 14, 2010)
 
 #####iTextSharp
   Website: https://github.com/itext/itextsharp
-  Version: 5.5.9
+   | Version: 5.5.9
   
 #####MySQL
   Connector & .NET files: https://downloads.mysql.com/archives/c-net/
-  Version: 6.9.6
+   | Version: 6.9.6
   
 #####Author: Tanay Parikh
   http://www.tanayparikh.com
