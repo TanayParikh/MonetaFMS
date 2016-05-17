@@ -355,14 +355,7 @@ namespace Moneta
             }
 
             //Based on whether or not the checkbox for the paid field is selected in the form control, updates accordingly in dgv.
-            if (frm.cbxPaid.Checked)
-            {
-                frm.dgvInvoices.Rows[frm.dgvInvoices.CurrentCell.RowIndex].Cells[6].Value = true;
-            }
-            else
-            {
-                frm.dgvInvoices.Rows[frm.dgvInvoices.CurrentCell.RowIndex].Cells[6].Value = false;
-            }
+            frm.dgvInvoices.Rows[frm.dgvInvoices.CurrentCell.RowIndex].Cells[6].Value = frm.cbxPaid.Checked;
 
             //Reads the checkboxes, and updates the natural language equivalent boxes
             ReadInvoiceCheckboxes();
@@ -429,14 +422,7 @@ namespace Moneta
             }
 
             //Determines the press state of the checkbox, and sets the string paid variable accordingly. 
-            if (frm.cbxPaid.Checked)
-            {
-                paid = "Yes";
-            }
-            else
-            {
-                paid = "No";
-            }
+            paid = frm.cbxPaid.Checked ? "Yes" : "No";
 
             //Gets the date from the date time picker, formatted as needed
             date = frm.dtpDate.Value.Month + "/" + frm.dtpDate.Value.Day + "/" + frm.dtpDate.Value.Year;
@@ -1142,32 +1128,26 @@ namespace Moneta
             frm.txtInvoiceClientName.AutoCompleteCustomSource = collection;
         }
 
+        // Pre: None
+        // Post: The client ID num is set
+        // Description: Scans the Client name textbox to find client id
         public void ScanForClientID()
         {
+            // Gets the last index of the InvoiceClientName textbox
             int lastIndex = frm.txtInvoiceClientName.Text.LastIndexOf("- CID: ");
 
+            // Ensures a valid index is in place
             if (lastIndex > -1)
             {
-                int numStartPosition = lastIndex + 7;
-
+                // Gets the client id under question
+                int numStartPosition = lastIndex + "- CID: ".Length;
                 int clientID = Convert.ToInt32(frm.txtInvoiceClientName.Text.Substring(numStartPosition));
 
+                // Populates the num box
                 if (clientIDs.BinarySearch(clientID) >= 0)
                 {
                     frm.numClientID.Value = clientID;
                 }
-
-                try
-                {
-                    
-                }
-                catch
-                {
-                    //MessageBox.Show("Client ID may only consist of numbers. Please reference clients tab.");
-                }
-
-                
-                //MessageBox.Show("" + clientID);
             }
         }
     }
