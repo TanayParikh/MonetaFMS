@@ -422,16 +422,16 @@ namespace Moneta
                         string sourcePath = frm.ofdExpenses.FileName;
 
                         //Checks if the expense directory exists, if not creates it
-                        if (!System.IO.Directory.Exists(Application.StartupPath + "\\Expenses"))
+                        if (!System.IO.Directory.Exists(data.databasePath + "\\Expenses"))
                         {
-                            System.IO.Directory.CreateDirectory(Application.StartupPath + "\\Expenses");
+                            System.IO.Directory.CreateDirectory(data.databasePath + "\\Expenses");
                         }
 
                         //Attempts to copy over the file into the directory
                         try
                         {
                             //Copies the file over to the directory and associates the selected image with the expense by passing a refrence link
-                            System.IO.File.Copy(sourcePath, Application.StartupPath + "\\Expenses\\" + Path.GetFileName(sourcePath));
+                            System.IO.File.Copy(sourcePath, data.databasePath + "\\Expenses\\" + Path.GetFileName(sourcePath));
                             frm.dgvExpenses.Rows[e.RowIndex].Cells[3].Value = Path.GetFileName(sourcePath);
                         }
                         catch (IOException)
@@ -440,7 +440,7 @@ namespace Moneta
                             int random = data.generator.Next(1, 99999);
 
                             //Copies the file over to the directory and associates the selected image with the expense by passing a refrence link
-                            System.IO.File.Copy(sourcePath, Application.StartupPath + "\\Expenses\\" + random + Path.GetFileName(sourcePath));
+                            System.IO.File.Copy(sourcePath, data.databasePath + "\\Expenses\\" + random + Path.GetFileName(sourcePath));
                             frm.dgvExpenses.Rows[e.RowIndex].Cells[3].Value = random + Path.GetFileName(sourcePath);
                         }
 
@@ -478,7 +478,7 @@ namespace Moneta
                     //Attempts to open up associated file for the expense
                     try
                     {
-                        System.Diagnostics.Process.Start(Application.StartupPath + "\\Expenses\\" + frm.dgvExpenses.Rows[e.RowIndex].Cells[3].Value.ToString());
+                        System.Diagnostics.Process.Start(data.databasePath + "\\Expenses\\" + frm.dgvExpenses.Rows[e.RowIndex].Cells[3].Value.ToString());
                     }
                     catch
                     {
@@ -614,15 +614,15 @@ namespace Moneta
                 string sourcePath = frm.ofdExpenses.FileName;
 
                 //Checks if expenses directory exists, if not creates it
-                if (!System.IO.Directory.Exists(Application.StartupPath + "\\Expenses"))
+                if (!System.IO.Directory.Exists(data.databasePath + "\\Expenses"))
                 {
-                    System.IO.Directory.CreateDirectory(Application.StartupPath + "\\Expenses");
+                    System.IO.Directory.CreateDirectory(data.databasePath + "\\Expenses");
                 }
 
                 //Attempts to copy over the image into the Expenses directory and return the image identifier
                 try
                 {
-                    System.IO.File.Copy(sourcePath, Application.StartupPath + "\\Expenses\\" + Path.GetFileName(sourcePath));
+                    System.IO.File.Copy(sourcePath, data.databasePath + "\\Expenses\\" + Path.GetFileName(sourcePath));
                     return Path.GetFileName(sourcePath);
                 }
                 //Otherwise if the file can't be copied, tries copying again but with a random number attached to the end
@@ -632,7 +632,7 @@ namespace Moneta
                     int random = data.generator.Next(1, 9999);
 
                     //Saves the file path and returns to user
-                    System.IO.File.Copy(sourcePath, Application.StartupPath + "\\Expenses\\" + random + Path.GetFileName(sourcePath));
+                    System.IO.File.Copy(sourcePath, data.databasePath + "\\Expenses\\" + random + Path.GetFileName(sourcePath));
                     return random + Path.GetFileName(sourcePath);
                 }
                 //If extraordinary exception occurs (File too large in size) lets the user know.

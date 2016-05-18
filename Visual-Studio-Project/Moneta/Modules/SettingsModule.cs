@@ -46,7 +46,7 @@ namespace Moneta
             this.data = data;
 
             //Sets the file path to the application's start up path combined with the settings.moneta extension
-            filePath = Application.StartupPath + "\\SETTINGS.MONETA";
+            filePath = data.databasePath + "\\SETTINGS.MONETA";
         }
 
         //Pre: None
@@ -465,15 +465,15 @@ namespace Moneta
                 string sourcePath = frm.ofdExpenses.FileName;
 
                 //Checks if images directory exists, if not creates it
-                if (!System.IO.Directory.Exists(Application.StartupPath + "\\Images"))
+                if (!System.IO.Directory.Exists(data.databasePath + "\\Images"))
                 {
-                    System.IO.Directory.CreateDirectory(Application.StartupPath + "\\Images");
+                    System.IO.Directory.CreateDirectory(data.databasePath + "\\Images");
                 }
 
                 //Attempts to copy over the image into the images directory and return the image identifier
                 try
                 {
-                    System.IO.File.Copy(sourcePath, Application.StartupPath + "\\Images\\" + Path.GetFileName(sourcePath));
+                    System.IO.File.Copy(sourcePath, data.databasePath + "\\Images\\" + Path.GetFileName(sourcePath));
                     return Path.GetFileName(sourcePath);
                 }
                 //Otherwise if the file can't be copied, tries copying again but with a random number attached to the end
@@ -483,7 +483,7 @@ namespace Moneta
                     int random = data.generator.Next(1, 9999);
 
                     //Saves the file path and returns to user
-                    System.IO.File.Copy(sourcePath, Application.StartupPath + "\\Expenses\\" + random + Path.GetFileName(sourcePath));
+                    System.IO.File.Copy(sourcePath, data.databasePath + "\\Expenses\\" + random + Path.GetFileName(sourcePath));
                     return random + Path.GetFileName(sourcePath);
                 }
                 //If extraordinary exception occurs (File too large in size) lets the user know.

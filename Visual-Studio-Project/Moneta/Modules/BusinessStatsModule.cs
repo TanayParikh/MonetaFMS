@@ -674,22 +674,22 @@ namespace Moneta
             PdfWriter writer;
 
             //Checks if the export directory exists, if not creates it.
-            if (!System.IO.Directory.Exists(Application.StartupPath + "\\ProfitLossStatements"))
+            if (!System.IO.Directory.Exists(data.databasePath + "\\ProfitLossStatements"))
             {
-                System.IO.Directory.CreateDirectory(Application.StartupPath + "\\ProfitLossStatements");
+                System.IO.Directory.CreateDirectory(data.databasePath + "\\ProfitLossStatements");
             }
             
             //Attempts to create a document in the startup path folder, in the ProfitLossStatements sub-directory.
             try
             {
                 //If possible names the file the company name followed by today's date
-                docPath = Application.StartupPath + "\\ProfitLossStatements\\" + data.generalSettings[SharedData.COMPANY_NAME] + "_" + dateExtension + ".pdf";
+                docPath = data.databasePath + "\\ProfitLossStatements\\" + data.generalSettings[SharedData.COMPANY_NAME] + "_" + dateExtension + ".pdf";
                 writer = PdfWriter.GetInstance(doc, new FileStream(docPath, FileMode.Create));
             }
             catch
             {
                 //Otherwise if an error occurs, such as the file already exists, creates a new file, with a random number extension added on.
-                docPath = Application.StartupPath + "\\ProfitLossStatements\\" + data.generalSettings[SharedData.COMPANY_NAME] + "_" + dateExtension + "_" + data.generator.Next(1, 9999).ToString() + ".pdf";
+                docPath = data.databasePath + "\\ProfitLossStatements\\" + data.generalSettings[SharedData.COMPANY_NAME] + "_" + dateExtension + "_" + data.generator.Next(1, 9999).ToString() + ".pdf";
                 writer = PdfWriter.GetInstance(doc, new FileStream(docPath, FileMode.Create));
             }
 
@@ -700,7 +700,7 @@ namespace Moneta
             try
             {
                 //Opens the logo and scales to 100px in height
-                iTextSharp.text.Image logo = iTextSharp.text.Image.GetInstance(Application.StartupPath + "//Images//" + data.generalSettings[SharedData.COMPANY_LOGO_PATH]);
+                iTextSharp.text.Image logo = iTextSharp.text.Image.GetInstance(data.databasePath + "//Images//" + data.generalSettings[SharedData.COMPANY_LOGO_PATH]);
                 float logoHeightMultiple = logo.Height / 100f;
                 logo.ScaleAbsolute(logo.Width / logoHeightMultiple, logo.Height / logoHeightMultiple);
 

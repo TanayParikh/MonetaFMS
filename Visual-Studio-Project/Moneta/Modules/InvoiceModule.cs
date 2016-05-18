@@ -572,9 +572,9 @@ namespace Moneta
                 double totalTax = 0;
 
                 //Checks if invoice export directory is present, if not creates it.
-                if (!System.IO.Directory.Exists(Application.StartupPath + "\\InvoiceExport"))
+                if (!System.IO.Directory.Exists(data.databasePath + "\\InvoiceExport"))
                 {
-                    System.IO.Directory.CreateDirectory(Application.StartupPath + "\\InvoiceExport");
+                    System.IO.Directory.CreateDirectory(data.databasePath + "\\InvoiceExport");
                 }
 
                 PdfWriter writer;
@@ -582,13 +582,13 @@ namespace Moneta
                 //Tries to create the invoice path and a filestream with the pdf writer with that path.
                 try
                 {
-                    invoicePath = Application.StartupPath + "\\InvoiceExport\\" + data.generalSettings[SharedData.COMPANY_NAME] + "_" + frm.lblInvoiceIDNum.Text + ".pdf";
+                    invoicePath = data.databasePath + "\\InvoiceExport\\" + data.generalSettings[SharedData.COMPANY_NAME] + "_" + frm.lblInvoiceIDNum.Text + ".pdf";
                     writer = PdfWriter.GetInstance(doc, new FileStream(invoicePath, FileMode.Create));
                 }
                 //If path is in-accessible, updates the path with a random number appended, and creates the pdf writer
                 catch
                 {
-                    invoicePath = Application.StartupPath + "\\InvoiceExport\\" + data.generalSettings[SharedData.COMPANY_NAME] + "_" + data.generator.Next(1, 9999).ToString() + "_" + frm.lblInvoiceIDNum.Text + ".pdf";
+                    invoicePath = data.databasePath + "\\InvoiceExport\\" + data.generalSettings[SharedData.COMPANY_NAME] + "_" + data.generator.Next(1, 9999).ToString() + "_" + frm.lblInvoiceIDNum.Text + ".pdf";
                     writer = PdfWriter.GetInstance(doc, new FileStream(invoicePath, FileMode.Create));
                 }
 
@@ -601,7 +601,7 @@ namespace Moneta
                 try
                 {
                     //Opens the logo and scales to 100px in height
-                    iTextSharp.text.Image logo = iTextSharp.text.Image.GetInstance(Application.StartupPath + "//Images//" + data.generalSettings[SharedData.COMPANY_LOGO_PATH]);
+                    iTextSharp.text.Image logo = iTextSharp.text.Image.GetInstance(data.databasePath + "//Images//" + data.generalSettings[SharedData.COMPANY_LOGO_PATH]);
                     float logoHeightMultiple = logo.Height / 80f;
                     logo.ScaleAbsolute(logo.Width / logoHeightMultiple, logo.Height / logoHeightMultiple);
                     logo.SetAbsolutePosition(830 * PAGE_SCALE_FACTOR, PageSize.LETTER.Height - 137 * PAGE_SCALE_FACTOR - logo.Height / logoHeightMultiple);
@@ -1143,7 +1143,7 @@ namespace Moneta
                 int numStartPosition = lastIndex + "- CID: ".Length;
                 int clientID = Convert.ToInt32(frm.txtInvoiceClientName.Text.Substring(numStartPosition));
 
-                // Populates the num box
+                // Validates client id and populates the client id num box
                 if (clientIDs.BinarySearch(clientID) >= 0)
                 {
                     frm.numClientID.Value = clientID;

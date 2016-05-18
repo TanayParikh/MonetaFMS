@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -20,6 +21,7 @@ using System.Windows.Forms;
 //Libraries used for file and data connections
 using System.IO;
 using MySql.Data.MySqlClient;
+using ICSharpCode.SharpZipLib.Zip;
 
 namespace Moneta
 {
@@ -79,10 +81,20 @@ namespace Moneta
         //Indicates which invoice template to use
         public int invoiceTemplate = 1;
 
+        //Stores the drive name and database path of the program executes from
+        public string driveName;
+        public string databasePath;
+
         //Blank class constructor (Needed for structural purposes)
         public SharedData()
         {
-            
+            // Sets the database path for XAMPP server and other files
+            if (!Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Moneta"))
+            {
+                Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Moneta");
+            }
+
+            databasePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Moneta";
         }
 
         //Pre: The error type and the sender object.
@@ -149,6 +161,57 @@ namespace Moneta
                 //Indicates that the query has failed to execute.
                 return false;
             }
+        }
+
+        // Pre: None
+        // Post: The zampplite server is set up.
+        // Description: Unzips the server if need be and starts it up. 
+        public void SetupNewProgram()
+        {
+            driveName = Application.StartupPath.Substring(0, Application.StartupPath.IndexOf('\\')) + "\\";
+            
+            //Checks if the database directory exists, if not creates it
+            if (!System.IO.Directory.Exists(driveName + "\\MonetaDatabase"))
+            {
+                // Informs user of setup
+                MessageBox.Show("Setting up the program for initial use. Please press ok to continue.");
+
+                // Assigns path and creates directory for xampplite server
+                string zipPath = Application.StartupPath + "\\Resources\\xampplite.zip";
+                Directory.CreateDirectory(driveName + "\\MonetaDatabase");
+
+                // Initializes the unziper
+                var targetDir = driveName + "\\MonetaDatabase";
+                FastZip fastZip = new FastZip();
+                string fileFilter = null;
+
+                // Will always overwrite if target filenames already exist
+                fastZip.ExtractZip(zipPath, targetDir, fileFilter);
+
+                // Informs user of completion and need for program restart
+                MessageBox.Show("Moneta Financial Management Suite has successfully been set up. Please restart the program.");
+                Application.Exit();
+            }
+
+            // Starts up local xampp server
+            string[] MyArguments = { "y", "n", "y", "x" };
+            StartProcess(driveName + "\\MonetaDatabase\\xampplite\\setup_xampp.bat", String.Join(" ", MyArguments));
+            StartProcess(driveName + "\\MonetaDatabase\\xampplite\\mysql_start.bat");
+        }
+
+        // Pre: processName and commandLineArgs of process.
+        // Post: Executes process in background.
+        // Description: Runs command line process. 
+        public int StartProcess(string processName, string commandLineArgs = null)
+        {
+            Process process = new Process();
+            process.StartInfo.FileName = processName;
+            process.StartInfo.Arguments = commandLineArgs;
+            process.StartInfo.CreateNoWindow = true;
+            process.StartInfo.ErrorDialog = false;
+            process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            process.Start();
+            return process.Id;
         }
     }
 }
