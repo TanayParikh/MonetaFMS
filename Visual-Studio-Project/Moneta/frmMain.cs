@@ -2,9 +2,6 @@
  * 
     Author:         Tanay Parikh
     Project Name:   Moneta
-    File Name:      frmMain.cs
-    Due Date:       June 10, 2015
-    Modified Date:  June 10, 2015
     Description:    Main view controller. Manages form actions and calls the appropriate 
                     command in the appropriate module. Includes refrences to the Business Stats, Invoice,
                     Settings, Client and Expense modules. 
@@ -403,7 +400,7 @@ namespace Moneta
         public void dgvInvoices_SelectionChanged(object sender, EventArgs e)
         {
             //Indicates selection change in invoices dgv
-            invoices.dgvInvoicesSelectionChanged();
+            invoices.DGVInvoicesSelectionChanged();
         }
 
         private void txtInvoiceClientName_TextChanged(object sender, EventArgs e)

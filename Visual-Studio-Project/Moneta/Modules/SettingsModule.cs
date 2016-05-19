@@ -55,20 +55,26 @@ namespace Moneta
         public void Initialize()
         {
             //Creates the settings headings column storing setting names. Adds onto settings dgv
-            DataGridViewTextBoxColumn settingsColumn = new DataGridViewTextBoxColumn();
-            settingsColumn.HeaderText = "Setting";
-            settingsColumn.Name = "Statistic";
-            settingsColumn.Width = 300;
-            settingsColumn.SortMode = DataGridViewColumnSortMode.Automatic;
-            settingsColumn.ReadOnly = true;
+            DataGridViewTextBoxColumn settingsColumn = new DataGridViewTextBoxColumn
+            {
+                HeaderText = "Setting",
+                Name = "Statistic",
+                Width = 300,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                ReadOnly = true
+            };
+
             frm.dgvSettings.Columns.Add(settingsColumn);
 
             //Creates the settings values column storing setting values. Adds onto settings dgv
-            DataGridViewTextBoxColumn valuesColumn = new DataGridViewTextBoxColumn();
-            valuesColumn.HeaderText = "";
-            valuesColumn.Name = "Value";
-            valuesColumn.Width = 350;
-            valuesColumn.SortMode = DataGridViewColumnSortMode.Automatic;
+            DataGridViewTextBoxColumn valuesColumn = new DataGridViewTextBoxColumn
+            {
+                HeaderText = "",
+                Name = "Value",
+                Width = 350,
+                SortMode = DataGridViewColumnSortMode.Automatic
+            };
+
             frm.dgvSettings.Columns.Add(valuesColumn);
 
             //Disables ability to add/remove rows to the dgv

@@ -194,8 +194,8 @@ namespace Moneta
             }
 
             // Starts up local xampp server
-            string[] MyArguments = { "y", "n", "y", "x" };
-            StartProcess(driveName + "\\MonetaDatabase\\xampplite\\setup_xampp.bat", String.Join(" ", MyArguments));
+            string[] myArguments = { "y", "n", "y", "x" };
+            StartProcess(driveName + "\\MonetaDatabase\\xampplite\\setup_xampp.bat", String.Join(" ", myArguments));
             StartProcess(driveName + "\\MonetaDatabase\\xampplite\\mysql_start.bat");
         }
 
@@ -204,12 +204,18 @@ namespace Moneta
         // Description: Runs command line process. 
         public int StartProcess(string processName, string commandLineArgs = null)
         {
-            Process process = new Process();
-            process.StartInfo.FileName = processName;
-            process.StartInfo.Arguments = commandLineArgs;
-            process.StartInfo.CreateNoWindow = true;
-            process.StartInfo.ErrorDialog = false;
-            process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            Process process = new Process
+            {
+                StartInfo =
+                {
+                    FileName = processName,
+                    Arguments = commandLineArgs,
+                    CreateNoWindow = true,
+                    ErrorDialog = false,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                }
+            };
+
             process.Start();
             return process.Id;
         }

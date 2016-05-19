@@ -345,14 +345,7 @@ namespace Moneta
         public void UpdateExistingInvoice(object sender, EventArgs e)
         {
             //Based on whether or not the checkbox for the quote is selected in the form control, updates accordingly in dgv.
-            if (frm.cbxQuote.Checked)
-            {
-                frm.dgvInvoices.Rows[frm.dgvInvoices.CurrentCell.RowIndex].Cells[5].Value = true;
-            }
-            else
-            {
-                frm.dgvInvoices.Rows[frm.dgvInvoices.CurrentCell.RowIndex].Cells[5].Value = false;
-            }
+            frm.dgvInvoices.Rows[frm.dgvInvoices.CurrentCell.RowIndex].Cells[5].Value = frm.cbxQuote.Checked;
 
             //Based on whether or not the checkbox for the paid field is selected in the form control, updates accordingly in dgv.
             frm.dgvInvoices.Rows[frm.dgvInvoices.CurrentCell.RowIndex].Cells[6].Value = frm.cbxPaid.Checked;
@@ -915,12 +908,12 @@ namespace Moneta
                 {
                     //Calls for the emailing of the doc with client email and the path of the generated invoice. Then opens the invoice.
                     SendEmail(invoicePath, clientEmail);
-                    System.Diagnostics.Process.Start(invoicePath);
+                    Process.Start(invoicePath);
                 }
                 else
                 {
                     //If not opens up the invoice
-                    System.Diagnostics.Process.Start(invoicePath);
+                    Process.Start(invoicePath);
                 }
             }
             else
@@ -988,7 +981,7 @@ namespace Moneta
         //Pre: None
         //Post: Indicates the dgv selection has changed and reads in the data from the dgv.
         //Description: Reads in check box data and fills the binding source and table adapter.
-        public void dgvInvoicesSelectionChanged()
+        public void DGVInvoicesSelectionChanged()
         {
             //Reads checkbox data
             ReadInvoiceCheckboxes();
@@ -1008,7 +1001,7 @@ namespace Moneta
                 UpdateExistingInvoice(sender, e);
 
                 //Indicates existing invoice is to be updated, alongside dgv invoices
-                dgvInvoicesSelectionChanged();
+                DGVInvoicesSelectionChanged();
             }
 
             // Returns to invoices view

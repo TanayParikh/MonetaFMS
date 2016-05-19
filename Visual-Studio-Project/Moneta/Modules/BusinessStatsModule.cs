@@ -674,9 +674,9 @@ namespace Moneta
             PdfWriter writer;
 
             //Checks if the export directory exists, if not creates it.
-            if (!System.IO.Directory.Exists(data.databasePath + "\\ProfitLossStatements"))
+            if (!Directory.Exists(data.databasePath + "\\ProfitLossStatements"))
             {
-                System.IO.Directory.CreateDirectory(data.databasePath + "\\ProfitLossStatements");
+                Directory.CreateDirectory(data.databasePath + "\\ProfitLossStatements");
             }
             
             //Attempts to create a document in the startup path folder, in the ProfitLossStatements sub-directory.
@@ -813,13 +813,13 @@ namespace Moneta
                     double expenseCategorySum = Convert.ToDouble(frm.expensesDataSet.Tables["expenses"].Compute("SUM(TotalAmount)", "ExpenseCategory = '" + data.expenseCategories[i] + "' AND Date >= '" + startDate + "' AND Date <= '" + endDate + "'"));
 
                     //Fills the expenses value column with the expense found, formatted as currency
-                    expenseCategoryTable.AddCell(new Paragraph(String.Format("{0:C}", expenseCategorySum)));
+                    expenseCategoryTable.AddCell(new Paragraph(string.Format("{0:C}", expenseCategorySum)));
                 }
                 catch
                 {
                     //Indicates there were no expenses for the category, and adds it into the table, formatted as currency
                     double expenseCategorySum = 0;
-                    expenseCategoryTable.AddCell(new Paragraph(String.Format("{0:C}", expenseCategorySum)));
+                    expenseCategoryTable.AddCell(new Paragraph(string.Format("{0:C}", expenseCategorySum)));
                 }
             }
 
