@@ -405,14 +405,7 @@ namespace Moneta
             string sql = "";
 
             //Determines the press state of the checkbox, and sets the string quote variable accordingly. 
-            if (frm.cbxQuote.Checked)
-            {
-                quote = "Quote";
-            }
-            else
-            {
-                quote = "Invoice";
-            }
+            quote = frm.cbxQuote.Checked ? "Quote" : "Invoice";
 
             //Determines the press state of the checkbox, and sets the string paid variable accordingly. 
             paid = frm.cbxPaid.Checked ? "Yes" : "No";

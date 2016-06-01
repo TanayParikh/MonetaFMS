@@ -195,7 +195,7 @@ namespace Moneta
 
             // Starts up local xampp server
             string[] myArguments = { "y", "n", "y", "x" };
-            StartProcess(driveName + "\\MonetaDatabase\\xampplite\\setup_xampp.bat", String.Join(" ", myArguments));
+            StartProcess(driveName + "\\MonetaDatabase\\xampplite\\setup_xampp.bat", string.Join(" ", myArguments));
             StartProcess(driveName + "\\MonetaDatabase\\xampplite\\mysql_start.bat");
         }
 

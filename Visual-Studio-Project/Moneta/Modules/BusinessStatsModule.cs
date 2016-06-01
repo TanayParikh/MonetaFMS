@@ -98,21 +98,25 @@ namespace Moneta
             frm.dgvBusinessStats.AllowUserToDeleteRows = false; ;
 
             //Intializes the client stats dgv headings column, with width set to 150px, and with read only capability.
-            DataGridViewTextBoxColumn clientID = new DataGridViewTextBoxColumn();
-            clientID.HeaderText = "Client ID";
-            clientID.Name = "Client ID";
-            clientID.Width = 150;
-            clientID.SortMode = DataGridViewColumnSortMode.Automatic;
-            clientID.ReadOnly = true;
+            DataGridViewTextBoxColumn clientID = new DataGridViewTextBoxColumn
+            {
+                HeaderText = "Client ID",
+                Name = "Client ID",
+                Width = 150,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                ReadOnly = true
+            };
             frm.dgvClientStats.Columns.Add(clientID);
 
             //Intializes the client stats dgv values column, with width set to 150px, and with read only capability.
-            DataGridViewTextBoxColumn clientTotal = new DataGridViewTextBoxColumn();
-            clientTotal.HeaderText = "Amount Billed";
-            clientTotal.Name = "clientTotal";
-            clientTotal.Width = 150;
-            clientTotal.SortMode = DataGridViewColumnSortMode.Automatic;
-            clientTotal.ReadOnly = true;
+            DataGridViewTextBoxColumn clientTotal = new DataGridViewTextBoxColumn
+            {
+                HeaderText = "Amount Billed",
+                Name = "clientTotal",
+                Width = 150,
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                ReadOnly = true
+            };
             frm.dgvClientStats.Columns.Add(clientTotal);
 
             //Disables the ability to add/remove rows from dgv client stats
