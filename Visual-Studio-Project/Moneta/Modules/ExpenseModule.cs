@@ -22,7 +22,7 @@ namespace Moneta
     {
         //Class shared data and form variables used to access main form data
         private SharedData data;
-        private frmMain frm;
+        private FrmMain frm;
         
         //Stores the dgv's previous value's and position
         private string oldCellValue = "";
@@ -39,7 +39,7 @@ namespace Moneta
         private const double SECONDS_IN_HOUR = 3600;
 
         //Class constructor with the form and shared data parameters
-        public ExpenseModule(frmMain frm, SharedData data)
+        public ExpenseModule(FrmMain frm, SharedData data)
         {
             //Locally stores the form and shared data
             this.frm = frm;
@@ -49,7 +49,7 @@ namespace Moneta
         //Pre: None
         //Post: Intializes the images column in the data grid view. 
         //Description: Sets up the image column in the expenses dgv. Sets the expense category column width to 250.
-        public void Initialize()
+        public void initialize()
         {
             //Sets expense category column width to 250
             frm.dgvExpenses.Columns[5].Width = 250;
@@ -65,7 +65,7 @@ namespace Moneta
         //Pre: The DGV Control showing event arg. Provides access to the current textbox in the dgv expenses.
         //Post: Fills expense categorization textbox with autocomplete values.
         //Description: If the current textbox is in the fifth (exp. categorization) column, fills it up with autcomplete values.
-        public void DisplayExpenseCategorizationInfo(DataGridViewEditingControlShowingEventArgs e)
+        public void displayExpenseCategorizationInfo(DataGridViewEditingControlShowingEventArgs e)
         {
             //Creates a tool tip to allow the user to see all category options.
             ToolTip expenseCategoriesTip = new ToolTip();
@@ -90,9 +90,9 @@ namespace Moneta
                     autoText.AutoCompleteSource = AutoCompleteSource.CustomSource;
 
                     //Creates an autocomplete collection, and associates it with the textbox.
-                    AutoCompleteStringCollection DataCollection = new AutoCompleteStringCollection();
-                    AutoCompleteItems(DataCollection, true);
-                    autoText.AutoCompleteCustomSource = DataCollection;
+                    AutoCompleteStringCollection dataCollection = new AutoCompleteStringCollection();
+                    autoCompleteItems(dataCollection, true);
+                    autoText.AutoCompleteCustomSource = dataCollection;
                 }
                 //Runs if the current textbox isn't part of the expense categorization column
                 else
@@ -103,11 +103,11 @@ namespace Moneta
                     //Creates a blank autocomplete collection
                     autoText.AutoCompleteMode = AutoCompleteMode.Suggest;
                     autoText.AutoCompleteSource = AutoCompleteSource.CustomSource;
-                    AutoCompleteStringCollection DataCollection = new AutoCompleteStringCollection();
+                    AutoCompleteStringCollection dataCollection = new AutoCompleteStringCollection();
 
                     //Associates it with the textbox to remove any autocorrect fields
-                    AutoCompleteItems(DataCollection, false);
-                    autoText.AutoCompleteCustomSource = DataCollection;
+                    autoCompleteItems(dataCollection, false);
+                    autoText.AutoCompleteCustomSource = dataCollection;
 
                 }
             }
@@ -116,7 +116,7 @@ namespace Moneta
         //Pre: The autcomplete collection to be modified, and whether the collection is to be added to or removed from.
         //Post: The fields are added/removed from the collection
         //Description: Based on whether the autocomplete is added to or removed from, modifies the collection with the expense categorizations.
-        public void AutoCompleteItems(AutoCompleteStringCollection col, bool add)
+        public void autoCompleteItems(AutoCompleteStringCollection col, bool add)
         {
             //Executes if the fields are to be added to the collection.
             if (add)
@@ -174,23 +174,23 @@ namespace Moneta
         //Calls for the display of expense dgv data error (Event handler)
         public void dgvDataError(object sender, DataGridViewDataErrorEventArgs error)
         {
-            data.DisplayDGVError(sender, error);
+            data.displayDGVError(sender, error);
         }
 
         //Called upon ever tick of the timer (Event handler)
-        public void TimerTick()
+        public void timerTick()
         {
             //Increments the number of ticks
             ++ticks;
 
             //Updates the form time label with the new time if need be
-            frm.lblTimerTime.Text = GetTimeFormated();
+            frm.lblTimerTime.Text = getTimeFormated();
         }
 
         //Pre: None
         //Post: The timeer is reset
         //Description: Resets the ticks, minutes and hours, stops the timer and resets button text
-        public void TimerReset()
+        public void timerReset()
         {
             //Stops timer
             frm.tmrWorkTime.Stop();
@@ -201,14 +201,14 @@ namespace Moneta
             numHours = 0;
 
             //Updates time labels and buttons
-            frm.lblTimerTime.Text = GetTimeFormated();
+            frm.lblTimerTime.Text = getTimeFormated();
             frm.btnTimerStartStop.Text = "Start";
         }
 
         //Pre: None
         //Post: Starts/stops the timer
         //Description: Based on the current state of the button, starts/stops the timer
-        public void TimerStartStop()
+        public void timerStartStop()
         {
             //Executesf the button says start
             if (frm.btnTimerStartStop.Text == "Start" || frm.btnTimerStartStop.Text == "Start Timer")
@@ -228,7 +228,7 @@ namespace Moneta
         //Pre: None
         //Post: Formats the time elapsed in minutes, seconds and hours
         //Description: Upon reaching 60 ticks, indicates a minute has passed, after 60 minutes an hour has passed. Formats this in natural language.
-        private string GetTimeFormated()
+        private string getTimeFormated()
         {
             //After 60 ticks indicates minute has passed.
             if (ticks == TIME_MULTIPLE)
@@ -253,7 +253,7 @@ namespace Moneta
         //Pre: None
         //Post: Submits the time elapsed specified by the user into the dgv expenses and expenses table, as a wage.
         //Description: Gets the invoice ID and time elapsed, and adds as an expense to the database and dgv expenses.
-        public void SubmitTime()
+        public void submitTime()
         {
             //Gets today's date
             DateTime dateTime = DateTime.UtcNow.Date;
@@ -278,7 +278,7 @@ namespace Moneta
                     + "', '%m/%d/%Y'),";
 
                 //Checks to see if the invoice ID is greater than 0, and if so, if it exists in the invoices table.
-                if (frm.numExpenseTimeInvoiceID.Value > 0 && data.ExecuteSQLQuery("SELECT COUNT(1) FROM invoices WHERE InvoiceID = " + frm.numExpenseTimeInvoiceID.Value, "If you'd like to associate an invoice. Please enter in a valid invoice ID"))
+                if (frm.numExpenseTimeInvoiceID.Value > 0 && data.executeSQLQuery("SELECT COUNT(1) FROM invoices WHERE InvoiceID = " + frm.numExpenseTimeInvoiceID.Value, "If you'd like to associate an invoice. Please enter in a valid invoice ID"))
                 {
                     //If not puts a default description of working on project
                     values += "'Work on Project', ";
@@ -298,11 +298,11 @@ namespace Moneta
                 values += "'Wages', " + Math.Round(expense, 2).ToString() + "," + 0 + ") ";
 
                 //Executes sql command with sql heading and values
-                data.ExecuteSQLQuery(sql + values, "Invalid Invoice ID. Please enter a valid invoice ID.");
+                data.executeSQLQuery(sql + values, "Invalid Invoice ID. Please enter a valid invoice ID.");
 
                 //Updates database and dgv expenses. Also updates images column
                 frm.expensesTableAdapter.Fill(frm.expensesDataSet.expenses);
-                UpdateImagesColumn();
+                updateImagesColumn();
             }
             else
             {
@@ -314,7 +314,7 @@ namespace Moneta
         //Pre: None
         //Post: Submits the distance specified by the user into the dgv expenses and expenses table
         //Description: Gets the value listed in the expenses num box, and transfers it over to the tables/dgv expenses.
-        public void SubmitDistance()
+        public void submitDistance()
         {
             //Gets today's date
             DateTime dateTime = DateTime.UtcNow.Date;
@@ -344,7 +344,7 @@ namespace Moneta
                 }
 
                 //Checks to see if the invoice ID is greater than 0, and if so, if it exists in the invoices table.
-                if (frm.numDistanceInvoiceID.Value > 0 && data.ExecuteSQLQuery("SELECT COUNT(1) FROM invoices WHERE InvoiceID = " + frm.numDistanceInvoiceID.Value, "If you'd like to associate an invoice. Please enter in a valid invoice ID"))
+                if (frm.numDistanceInvoiceID.Value > 0 && data.executeSQLQuery("SELECT COUNT(1) FROM invoices WHERE InvoiceID = " + frm.numDistanceInvoiceID.Value, "If you'd like to associate an invoice. Please enter in a valid invoice ID"))
                 {
                     //If so adds the invoice header and value into the sql statement
                     values += Convert.ToInt32(frm.numDistanceInvoiceID.Value).ToString() + ", ";
@@ -356,11 +356,11 @@ namespace Moneta
                 values += "'Motor Vehicle Expenses', " + Math.Round((distanceTravelled * Convert.ToDouble(data.generalSettings[SharedData.COST_PER_KM])), 2).ToString() + "," + 0 + ") ";
 
                 //Executes sql command with sql heading and values
-                data.ExecuteSQLQuery(sql + values, "Invalid Invoice ID. Please enter a valid invoice ID.");
+                data.executeSQLQuery(sql + values, "Invalid Invoice ID. Please enter a valid invoice ID.");
 
                 //Updates database and dgv expenses. Also updates images column
                 frm.expensesTableAdapter.Fill(frm.expensesDataSet.expenses);
-                UpdateImagesColumn();
+                updateImagesColumn();
             }
             else
             {
@@ -372,7 +372,7 @@ namespace Moneta
         //Pre: None
         //Post: Updates the images column of the dgv, with either "View" image or "Add" image.
         //Description: Based on the state of the image reference column determines what to display in each cell.
-        public void UpdateImagesColumn()
+        public void updateImagesColumn()
         {
             //Runs for all displayed rows
             for (int i = 0; i < frm.dgvExpenses.RowCount; ++i)
@@ -395,13 +395,13 @@ namespace Moneta
         public void dgvCellClick(DataGridViewCellEventArgs e)
         {
             //Calls to check if the image column has been selected. If so opens the file dialog/stored image file.
-            AddRemoveImage(e);
+            addRemoveImage(e);
         }
 
         //Pre: None
         //Post: Opens the stored image file, or file dialog to associate a file, based on the current state of the image source.
         //Description: Checks if the cell click occured in the 8th (image view) column. If so based on whether an image is already associated, gets an image/opens up the existing image.
-        private void AddRemoveImage(DataGridViewCellEventArgs e)
+        private void addRemoveImage(DataGridViewCellEventArgs e)
         {
             //Ensures it is the 8th image view column, and the cell isn't null
             if (e.ColumnIndex == 8 && frm.dgvExpenses.CurrentCell.Value != null)
@@ -448,11 +448,11 @@ namespace Moneta
                                         + frm.dgvExpenses.Rows[e.RowIndex].Cells[0].Value + ";";
 
                             //Executes the query and supplies an error message
-                            data.ExecuteSQLQuery(sql, " File could not be copied. Please move to another location and try again.");
+                            data.executeSQLQuery(sql, " File could not be copied. Please move to another location and try again.");
 
                             //Updates the displayed table with the new data and indicates temp error by pass to ensure smoother experience
                             frm.expensesTableAdapter.Fill(frm.expensesDataSet.expenses);
-                            UpdateImagesColumn();
+                            updateImagesColumn();
                             data.tempByPass = true;
 
                         }
@@ -488,11 +488,11 @@ namespace Moneta
                                         + frm.dgvExpenses.Rows[e.RowIndex].Cells[0].Value + ";";
 
                             //Executes the query and supplies an empty error message
-                            data.ExecuteSQLQuery(sql, "");
+                            data.executeSQLQuery(sql, "");
 
                             //Updates the displayed table with the new data and indicates temp error by pass to ensure smoother experience
                             frm.expensesTableAdapter.Fill(frm.expensesDataSet.expenses);
-                            UpdateImagesColumn();
+                            updateImagesColumn();
                             data.tempByPass = true;
 
                         }
@@ -509,7 +509,7 @@ namespace Moneta
         //Pre: None
         //Post: An expense is added into the dgv and expenses table.
         //Description: Validates form control input data, and if valid adds data into expenses table and expenses dgv.
-        public void AddExpense()
+        public void addExpense()
         {
             //Ensures that the data collected is in the valid format/length
             bool isDataValid = false;
@@ -530,10 +530,10 @@ namespace Moneta
             if (description.Length > 0
                 && expenseCategory.Length > 0
                 && totalAmount > 0
-                && VerifyExpenseCategorization(expenseCategory))
+                && verifyExpenseCategorization(expenseCategory))
             {
                 //Checks if no invoice ID is entered (0) or if one is entered, it is valid (Through an sql query of the invoices table.
-                if (invoiceID == 0 || data.ExecuteSQLQuery("SELECT COUNT(1) FROM invoices WHERE InvoiceID = " + invoiceID, "If you'd like to associate an invoice. Please enter in a valid invoice ID"))
+                if (invoiceID == 0 || data.executeSQLQuery("SELECT COUNT(1) FROM invoices WHERE InvoiceID = " + invoiceID, "If you'd like to associate an invoice. Please enter in a valid invoice ID"))
                 {
                     //If so, validates date
                     isDataValid = true;
@@ -591,7 +591,7 @@ namespace Moneta
 
                 //Re-fills the expense table and images column with the new data and informs user of successful entry
                 frm.expensesTableAdapter.Fill(frm.expensesDataSet.expenses);
-                UpdateImagesColumn();
+                updateImagesColumn();
                 MessageBox.Show("Expense successfully added to the database.");
             }
         }
@@ -599,7 +599,7 @@ namespace Moneta
         //Pre: The string value of the image currently (for backup purposes)
         //Post: The image is copied over to the application folder, and the path is saved
         //Description: Opens the file dialog to get the image. Saves it in the expenses directory, with the file path. 
-        public string FetchImage(string value)
+        public string fetchImage(string value)
         {
             //Executes if user selects an image
             if (frm.ofdExpenses.ShowDialog() == DialogResult.OK)
@@ -651,7 +651,7 @@ namespace Moneta
                 if (prevCol == 5 && frm.dgvExpenses.Rows[prevRow].Cells[prevCol].Value != null)
                 {
                     //If so verifies new entry is a valid category
-                    if (!VerifyExpenseCategorization(frm.dgvExpenses.Rows[prevRow].Cells[prevCol].Value.ToString()))
+                    if (!verifyExpenseCategorization(frm.dgvExpenses.Rows[prevRow].Cells[prevCol].Value.ToString()))
                     {
                         //If not returns the cell to the old value
                         frm.dgvExpenses.CurrentCell.Value = oldCellValue;
@@ -693,7 +693,7 @@ namespace Moneta
         //Pre: The text value being examined to see if it is a valid expense category.
         //Post: Answers whether or not it is a valid expense category in bool form.
         //Description: Runs through all the expense categories. If the input is equal to any one, returns valid categorization.
-        private bool VerifyExpenseCategorization(string newValue)
+        private bool verifyExpenseCategorization(string newValue)
         {
             //Establishes default output, invalid categorization
             bool valueVerified = false;

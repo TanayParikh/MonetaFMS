@@ -77,9 +77,9 @@ namespace Moneta
 
   public class MyDateTimePickerEditingControl : DateTimePicker, IDataGridViewEditingControl
   {
-    private DataGridView _dataGridView;
-    private bool _valueChanged = false;
-    private int _rowIndex;
+    private DataGridView dataGridView;
+    private bool valueChanged = false;
+    private int rowIndex;
 
     public MyDateTimePickerEditingControl()
     {
@@ -125,8 +125,8 @@ namespace Moneta
 
     public int EditingControlRowIndex
     {
-      get { return _rowIndex; }
-      set { _rowIndex = value; }
+      get { return rowIndex; }
+      set { rowIndex = value; }
     }
 
     public bool EditingControlWantsInputKey(Keys key, bool dataGridViewWantsInputKey)
@@ -159,21 +159,21 @@ namespace Moneta
 
     public DataGridView EditingControlDataGridView
     {
-      get { return _dataGridView; }
-      set { _dataGridView = value; }
+      get { return dataGridView; }
+      set { dataGridView = value; }
     }
 
     public bool EditingControlValueChanged
     {
-      get { return _valueChanged; }
-      set { _valueChanged = value; }
+      get { return valueChanged; }
+      set { valueChanged = value; }
     }
 
     public Cursor EditingPanelCursor { get { return base.Cursor; } }
 
     protected override void OnValueChanged(EventArgs e)
     {
-      _valueChanged = true;
+      valueChanged = true;
       this.EditingControlDataGridView.NotifyCurrentCellDirty(true);
       base.OnValueChanged(e);
     }

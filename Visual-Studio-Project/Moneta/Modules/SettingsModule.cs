@@ -28,7 +28,7 @@ namespace Moneta
     {
         //Class shared data and form variables used to access main form data
         private SharedData data;
-        private frmMain frm;
+        private FrmMain frm;
 
         //Stores the path to the settings file
         private string filePath;
@@ -39,7 +39,7 @@ namespace Moneta
         private string[] databaseSettingsHeadings = "Server,Database User ID,DatabasePassword,Database Name".Split(',');
 
         //Constructs the settings module with the form and shared data as reference
-        public SettingsModule(frmMain frm, SharedData data)
+        public SettingsModule(FrmMain frm, SharedData data)
         {
             //Locally stores the form and shared data references
             this.frm = frm;
@@ -52,7 +52,7 @@ namespace Moneta
         //Pre: None
         //Post: Initializes the class's dgv columns
         //Description: Sets up the columns and adds to the dgv settings
-        public void Initialize()
+        public void initialize()
         {
             //Creates the settings headings column storing setting names. Adds onto settings dgv
             DataGridViewTextBoxColumn settingsColumn = new DataGridViewTextBoxColumn
@@ -82,13 +82,13 @@ namespace Moneta
             frm.dgvSettings.AllowUserToDeleteRows = false;
 
             //Reads the settings data from the file
-            ReadSettingsData();
+            readSettingsData();
         }
 
         //Pre: None
         //Post: Settings data is read from the external settings file
         //Description: Checks if file exists, and if so reads settings. If not calls for the creation of default settings
-        private void ReadSettingsData()
+        private void readSettingsData()
         {   
             //Checks file existance
             if (File.Exists(filePath))
@@ -115,27 +115,27 @@ namespace Moneta
 
                     //Closes the file and displays the settings in the dgv
                     inFile.Close();
-                    DisplaySettings();
+                    displaySettings();
                 }
                 catch
                 {
                     //Calls for the creation of a new settings file and the re-calling of this subprogram
-                    CreateSettingsFile();
-                    ReadSettingsData();
+                    createSettingsFile();
+                    readSettingsData();
                 }
             }
             else
             {
                 //Calls for the creation of a new settings file and the re-calling of this subprogram
-                CreateSettingsFile();
-                ReadSettingsData();
+                createSettingsFile();
+                readSettingsData();
             }
         }
 
         //Pre: None
         //Post: A new settings file is created.
         //Description: Creates a new settings file with default data
-        private void CreateSettingsFile()
+        private void createSettingsFile()
         {
             //Attempts to create the settings file
             try
@@ -163,7 +163,7 @@ namespace Moneta
         //Pre: None
         //Post: The settings are displayed with headings on the settings dgv
         //Description: Displays the settings, with headings, from the settings arrays to the settings dgv
-        private void DisplaySettings()
+        private void displaySettings()
         {
             //Stores local variables for the number of each type of setting thus far published
             int numGen = 0;
@@ -247,7 +247,7 @@ namespace Moneta
         //Pre: None
         //Post: The settings are saved onto an external file.
         //Description: Each row of the settings dgv is read, and the modified settings are stored
-        public void SaveSettings()
+        public void saveSettings()
         {
             //Stores the value of the setting being considered
             string value = "";
@@ -455,14 +455,14 @@ namespace Moneta
             if (frm.dgvSettings.CurrentCell.RowIndex == 4 && frm.dgvSettings.CurrentCell.ColumnIndex == 1)
             {
                 //Calls for the fetching of the image
-                frm.dgvSettings.CurrentCell.Value = FetchImage(frm.dgvSettings.CurrentCell.Value.ToString());
+                frm.dgvSettings.CurrentCell.Value = fetchImage(frm.dgvSettings.CurrentCell.Value.ToString());
             }
         }
 
         //Pre: The string value of the image currently (for backup purposes)
         //Post: The image is copied over to the application folder, and the path is saved
         //Description: Opens the file dialog to get the image. Saves it in the images directory, with the file path. 
-        private string FetchImage(string value)
+        private string fetchImage(string value)
         {
             //Executes if user selects an image
             if (frm.ofdExpenses.ShowDialog() == DialogResult.OK)

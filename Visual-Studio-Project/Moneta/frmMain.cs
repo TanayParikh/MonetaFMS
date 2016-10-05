@@ -24,7 +24,7 @@ using System.IO;
 
 namespace Moneta
 {
-    public partial class frmMain : Form
+    public partial class FrmMain : Form
     {
         //Stores the main project wide shared data variable
         private SharedData data;
@@ -44,7 +44,7 @@ namespace Moneta
         public DataSet itemsDataS = new DataSet("items");
 
         //Main form class constructor
-        public frmMain()
+        public FrmMain()
         {
             //Instanstiates the program's shared data
             data = new SharedData();
@@ -60,16 +60,16 @@ namespace Moneta
             InitializeComponent();
 
             //Initializes the modules
-            invoices.Initialize();
-            expenses.Initialize();
-            businessStats.Initialize();
-            settings.Initialize();
+            invoices.initialize();
+            expenses.initialize();
+            businessStats.initialize();
+            settings.initialize();
         }
 
         //Loads form elements
         private void frmMain_Load(object sender, EventArgs e)
         {
-            data.SetupNewProgram();
+            data.setupNewProgram();
 
             //Attempts to load the databases
             try
@@ -85,11 +85,11 @@ namespace Moneta
 
                 //Performs the final instialization of the individual modules.
                 //Fills in checkboxes and other special columns in datagridview
-                expenses.UpdateImagesColumn();
-                invoices.UpdateInvoiceCheckboxes();
+                expenses.updateImagesColumn();
+                invoices.updateInvoiceCheckboxes();
 
                 //Fills value for autofill of client information
-                SetUpClientAutofill();
+                setUpClientAutofill();
 
                 //Accounts for first initialization
                 if (dgvInvoices.Rows.Count > 0)
@@ -116,7 +116,7 @@ namespace Moneta
         {
             //Stops the mysql server
             string driveName = Application.StartupPath.Substring(0, Application.StartupPath.IndexOf('\\')) + "\\";
-            data.StartProcess(driveName + "\\MonetaDatabase\\xampplite\\mysql_stop.bat");
+            data.startProcess(driveName + "\\MonetaDatabase\\xampplite\\mysql_stop.bat");
 
             //Closes the application upon selection of the 'x' button
             Application.Exit();
@@ -159,7 +159,7 @@ namespace Moneta
         {
             //Indicates the selection of the clients module.
             //Resets visibilities of other modules, and makes the module nav text green.
-            ResetVisibilities();
+            resetVisibilities();
             lblNavClients.ForeColor = data.greenText;
             pnlClients.Visible = true;
         }
@@ -168,7 +168,7 @@ namespace Moneta
         {
             //Indicates the selection of the invoices module.
             //Resets visibilities of other modules, and makes the module nav text green.
-            ResetVisibilities();
+            resetVisibilities();
             lblNavInvoices.ForeColor = data.greenText;
             pnlInvoices.Visible = true;
         }
@@ -177,7 +177,7 @@ namespace Moneta
         {
             //Indicates the selection of the expenses module.
             //Resets visibilities of other modules, and makes the module nav text green.
-            ResetVisibilities();
+            resetVisibilities();
             lblNavExpenses.ForeColor = data.greenText;
             pnlExpenses.Visible = true;
         }
@@ -186,21 +186,21 @@ namespace Moneta
         {
             //Indicates the selection of the business stats module.
             //Resets visibilities of other modules, and makes the module nav text green.
-            ResetVisibilities();
+            resetVisibilities();
             lblNavBusinessStats.ForeColor = data.greenText;
             pnlBusinessStats.Visible = true;
 
             //Sets the default starting and ending dates, and calls for the calculation of the stats
             dtpStatsStart.Value = DateTime.Today.AddDays(-120).Date;
             dtpStatsEnd.Value = DateTime.Today;
-            businessStats.CalculateStats();
+            businessStats.calculateStats();
         }
 
         private void lblNavSettings_Click(object sender, EventArgs e)
         {
             //Indicates the selection of the settings module.
             //Resets visibilities of other modules, and makes the module nav text green.
-            ResetVisibilities();
+            resetVisibilities();
             lblNavSettings.ForeColor = data.greenText;
             pnlSettings.Visible = true;
         }
@@ -209,7 +209,7 @@ namespace Moneta
         {
             //Indicates the selection of the home page.
             //Resets visibilities of other modules, and makes the page nav text green.
-            ResetVisibilities();
+            resetVisibilities();
             lblNavHome.ForeColor = data.greenText;
             pnlHome.Visible = true;
         }
@@ -217,7 +217,7 @@ namespace Moneta
         //Pre: None
         //Post: Resets the visibilities and text colours of the nav text.
         //Description: Makes all panels invisible and sets text colors to white for the navigation. 
-        private void ResetVisibilities()
+        private void resetVisibilities()
         {
             //Makes all panels, aside from navigation, invisible
             pnlClients.Visible = false;
@@ -246,7 +246,7 @@ namespace Moneta
         public void btnCreateClient_Click(object sender, EventArgs e)
         {
             //Calls for the creation of the client
-            clients.CreateClient();
+            clients.createClient();
         }
 
         public void dgvClients_SelectionChanged(object sender, EventArgs e)
@@ -271,32 +271,32 @@ namespace Moneta
         public void tmrWorkTime_Tick(object sender, EventArgs e)
         {
             //Instantiates the timer
-            expenses.TimerTick();
+            expenses.timerTick();
         }
 
         public void btnTimerReset_Click(object sender, EventArgs e)
         {
             //Resets the timer and values
-            expenses.TimerReset();
+            expenses.timerReset();
         }
 
         public void btnTimerStartStop_Click(object sender, EventArgs e)
         {
             //Starts/stops the timer
-            expenses.TimerStartStop();
+            expenses.timerStartStop();
         }
 
         public void btnSubmitDistance_Click(object sender, EventArgs e)
         {
             //Submits the distance into the dgv, and updates dgv entries
-            expenses.SubmitDistance();
+            expenses.submitDistance();
             dgvExpenses_SelectionChanged(sender, e);
         }
 
         private void btnTimeAddExpense_Click(object sender, EventArgs e)
         {
             //Submits the time into the dgv, and updates dgv entries
-            expenses.SubmitTime();
+            expenses.submitTime();
             dgvExpenses_SelectionChanged(sender, e);
         }
 
@@ -321,7 +321,7 @@ namespace Moneta
         public void dgvExpenses_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
         {
             //Calls for the instantiation of the autocomplete fields for the expense categories
-            expenses.DisplayExpenseCategorizationInfo(e);
+            expenses.displayExpenseCategorizationInfo(e);
         }
 
         public void dgvExpenses_DataError(object sender, DataGridViewDataErrorEventArgs error)
@@ -333,19 +333,19 @@ namespace Moneta
         private void dgvExpenses_Sorted(object sender, EventArgs e)
         {
             //Redisplays the image column based on the newly sorted dgv
-            expenses.UpdateImagesColumn();
+            expenses.updateImagesColumn();
         }
 
         private void btnAddExpense_Click(object sender, EventArgs e)
         {
             //Indicates the add expense button has been pressed
-            expenses.AddExpense();
+            expenses.addExpense();
         }
 
         private void btnAddImage_Click(object sender, EventArgs e)
         {
             //Indicates the add image button has been pressed. Calls for the fetching of the image, if it fails, returns back the existing label.
-            btnExpenseAddImage.Text = expenses.FetchImage("Add Image");
+            btnExpenseAddImage.Text = expenses.fetchImage("Add Image");
         }
 
 
@@ -358,31 +358,31 @@ namespace Moneta
         public void dgvInvoices_Sorted(object sender, EventArgs e)
         {
             //Calls for the updating of dgv invoice checkboxes based on newly sorted arrangement
-            invoices.UpdateInvoiceCheckboxes();
+            invoices.updateInvoiceCheckboxes();
         }
 
         public void dgvInvoices_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
         {
             //Calls for the sorting of the invoices
-            invoices.SortInvoices(e);
+            invoices.sortInvoices(e);
         }
 
         public void btnPrintInvoice_Click(object sender, EventArgs e)
         {
             //Calls for the printing of the invoice
-            invoices.PrintInvoice();
+            invoices.printInvoice();
         }
 
         public void btnEmailInvoice_Click(object sender, EventArgs e)
         {
             //Calls for the emailing of the invoice
-            invoices.SendInvoice();
+            invoices.sendInvoice();
         }
 
         public void dgvItems_DataError(object sender, DataGridViewDataErrorEventArgs error)
         {
             //Indicates error in items dgv
-            data.DisplayDGVError(sender, error);
+            data.displayDGVError(sender, error);
         }
 
         private void dgvItems_CellValueChanged(object sender, DataGridViewCellEventArgs e)
@@ -394,23 +394,23 @@ namespace Moneta
         public void dgvInvoices_DataError(object sender, DataGridViewDataErrorEventArgs error)
         {
             //Indicates error in invoices dgv
-            data.DisplayDGVError(sender, error);
+            data.displayDGVError(sender, error);
         }
 
         public void dgvInvoices_SelectionChanged(object sender, EventArgs e)
         {
             //Indicates selection change in invoices dgv
-            invoices.DGVInvoicesSelectionChanged();
+            invoices.dgvInvoicesSelectionChanged();
         }
 
         private void txtInvoiceClientName_TextChanged(object sender, EventArgs e)
         {
-            invoices.ScanForClientID();
+            invoices.scanForClientID();
         }
 
-        public void SetUpClientAutofill()
+        public void setUpClientAutofill()
         {
-            invoices.SetUpAutofillClientName();
+            invoices.setUpAutofillClientName();
         }
 
         public void dgvInvoices_CellClick_1(object sender, DataGridViewCellEventArgs e)
@@ -422,7 +422,7 @@ namespace Moneta
         private void btnCreateInvoice_Click(object sender, EventArgs e)
         {
             //Calls for the creation of the invoice and the updating of the dgv invoices
-            invoices.SetupNewInvoice();
+            invoices.setupNewInvoice();
             dgvInvoices_SelectionChanged(sender, e);
         }
 
@@ -435,7 +435,7 @@ namespace Moneta
         private void btnCreateEditAddItems_Click(object sender, EventArgs e)
         {
             //Confirms creation of invoice with data provided.
-            invoices.CreateInvoice();
+            invoices.createInvoice();
 
         }
 
@@ -449,13 +449,13 @@ namespace Moneta
         private void btnUpdateStats_Click(object sender, EventArgs e)
         {
             //Calls for the recalculation of the stats based on time range selected
-            businessStats.CalculateStats();
+            businessStats.calculateStats();
         }
 
         private void btnGenerateProfitLossStatement_Click(object sender, EventArgs e)
         {
             //Calls for the generation of the profit loss statement
-            businessStats.GenerateProfitLoss();
+            businessStats.generateProfitLoss();
         }
 
 
@@ -468,13 +468,13 @@ namespace Moneta
         private void btnSaveSettings_Click(object sender, EventArgs e)
         {
             //Saves the settings entered
-            settings.SaveSettings();
+            settings.saveSettings();
         }
 
         private void dgvSettings_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
             //Displays the settings dgv error
-            data.DisplayDGVError(sender, e);
+            data.displayDGVError(sender, e);
         }
 
         private void dgvSettings_SelectionChanged(object sender, EventArgs e)

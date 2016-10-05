@@ -36,7 +36,7 @@ namespace Moneta
     {
         //Stores module specific refrence to shared data and form
         private SharedData data;
-        private frmMain frm;
+        private FrmMain frm;
 
         //Constants to identify stats within the stats arrays
         private const int REVENUE = 0;
@@ -59,7 +59,7 @@ namespace Moneta
         private double[] stats = new double[8];
 
         //Class constructor with the form and shared data as parameters
-        public BusinessStatsModule(frmMain frm, SharedData data)
+        public BusinessStatsModule(FrmMain frm, SharedData data)
         {
             //Locally stores shared data and the form
             this.frm = frm;
@@ -73,7 +73,7 @@ namespace Moneta
         //Pre: None
         //Post: Initializes the module's dgv columns
         //Description: Sets up the columns for the business stats and client stats dgvs
-        public void Initialize()
+        public void initialize()
         {
             //Intializes the headings column, with width set to 175px, and with read only capability. Adds to dgv business stats
             DataGridViewTextBoxColumn statHeadings = new DataGridViewTextBoxColumn();
@@ -127,7 +127,7 @@ namespace Moneta
         //Pre: None
         //Post: Calls for the calculation of the business and client stats
         //Description: Clears the current display, fetches the dates, and calculates the stats
-        public void CalculateStats()
+        public void calculateStats()
         {
             //Determines the month timespan between the starting and ending dates. Will be used later when printing. 
             numMonths = frm.dtpStatsEnd.Value.Month - frm.dtpStatsStart.Value.Month + (frm.dtpStatsEnd.Value.Year - frm.dtpStatsStart.Value.Year) * 12;
@@ -144,12 +144,12 @@ namespace Moneta
                 string endDate = frm.dtpStatsEnd.Value.Date.ToString("d", data.dateCulture);
 
                 //Calls for the calculation of the business and client stats
-                CompileBusinessStats(startDate, endDate);
+                compileBusinessStats(startDate, endDate);
 
                 //Accounts for no clients
                 if (frm.dgvClients.RowCount > 0)
                 {
-                    CompileClientStats(startDate, endDate);
+                    compileClientStats(startDate, endDate);
                 }
             }
             else
@@ -162,17 +162,17 @@ namespace Moneta
         //Pre: The start and end dates of the calculation.
         //Post: The business stats are calculated and displayed in the business stats dgv.
         //Description: Calls for the calculation of each business stat, and then displays each one with heading in the dgv. 
-        private void CompileBusinessStats(string startDate, string endDate)
+        private void compileBusinessStats(string startDate, string endDate)
         {
             //Calls for the calculation of each business stat
-            stats[EXPENSES] = CalculateExpenses(startDate, endDate);
-            stats[REVENUE] = CalculateRevenue(startDate, endDate);
-            stats[PROFIT] = CalculateProfit();
-            stats[ACCOUNTS_RECEIVABLE] = CalculateAccountsReceivable(startDate, endDate);
-            stats[GROSS_MARGIN] = CalculateGrossMargin(startDate, endDate);
+            stats[EXPENSES] = calculateExpenses(startDate, endDate);
+            stats[REVENUE] = calculateRevenue(startDate, endDate);
+            stats[PROFIT] = calculateProfit();
+            stats[ACCOUNTS_RECEIVABLE] = calculateAccountsReceivable(startDate, endDate);
+            stats[GROSS_MARGIN] = calculateGrossMargin(startDate, endDate);
             stats[COGS] = sumCogs;
-            stats[TAXES_COLLECTED] = CalculateTaxesCollected(startDate, endDate);
-            stats[TAXES_PAID] = CalculateTaxesPaid(startDate, endDate);
+            stats[TAXES_COLLECTED] = calculateTaxesCollected(startDate, endDate);
+            stats[TAXES_PAID] = calculateTaxesPaid(startDate, endDate);
 
             //Determines the month timespan between the starting and ending dates. Will be used later when printing. 
             numMonths = frm.dtpStatsEnd.Value.Month - frm.dtpStatsStart.Value.Month + (frm.dtpStatsEnd.Value.Year - frm.dtpStatsStart.Value.Year) * 12;
@@ -201,7 +201,7 @@ namespace Moneta
         //Pre: The start and end dates of the calculation.
         //Post: The client stats are calculated and displayed in the client stats dgv.
         //Description: Calculates the client stats based on dates, and then displays the amount each client has been billed in that timespan. 
-        private void CompileClientStats(string startDate, string endDate)
+        private void compileClientStats(string startDate, string endDate)
         {
             //Lists storing the invoices and client values found
             List<string> invoices = new List<string>();
@@ -299,7 +299,7 @@ namespace Moneta
         //Pre: None
         //Post: The profit is returned
         //Description: Calculates the profit -> (Revenue-expenses)
-        private double CalculateProfit()
+        private double calculateProfit()
         {
             //Returns the calculated profit
             return stats[REVENUE] - stats[EXPENSES];
@@ -309,7 +309,7 @@ namespace Moneta
         //Post: The business revenue is returned
         //Description: Calculates the revenue, by finding the invoices in the date range, and then 
         //             finding the sum of the item values for each of the invoices.
-        private double CalculateRevenue(string startDate, string endDate)
+        private double calculateRevenue(string startDate, string endDate)
         {
             //Stores the revenue calculated so far and 
             double sumRevenue = 0;
@@ -373,7 +373,7 @@ namespace Moneta
         //Pre: The start and end dates of the calculation.
         //Post: The business expenses are returned
         //Description: Calculates the total expenses, by using the c# compute operrand.
-        private double CalculateExpenses(string startDate, string endDate)
+        private double calculateExpenses(string startDate, string endDate)
         {
             //Attempts the calculation. If data is valid, returns it. Otherwise returns 0
             try
@@ -393,7 +393,7 @@ namespace Moneta
         //Post: The money owed to the business is returned
         //Description: Calculates the accounts payaable, by finding the invoices in the date range, which are unpaid, 
         //             and then finding the sum of the item values for each of those invoices.
-        private double CalculateAccountsReceivable(string startDate, string endDate)
+        private double calculateAccountsReceivable(string startDate, string endDate)
         {
             //Variables storing the sum of the amount receivable and the appropriate invoice ID
             double sumReceivable = 0;
@@ -455,7 +455,7 @@ namespace Moneta
         //Post: The gross margin is calculated
         //Description: Finds all the expenses, which are associated with an invoice, and finds the cost of goods sold, and
         //             subsequently the gross margin. (Revenue - Cost of goods sold) / Revenue
-        private double CalculateGrossMargin(string startDate, string endDate)
+        private double calculateGrossMargin(string startDate, string endDate)
         {
             //Local variables to help calculate the gross margin and store found invoices
             double sumRev = 0;
@@ -519,7 +519,7 @@ namespace Moneta
         //Pre: The start and end dates of the calculation.
         //Post: The total taxes paid on expenses are calculated
         //Description: Finds the sum of the paid taxes, which are associated with an expense.
-        private double CalculateTaxesPaid(string startDate, string endDate)
+        private double calculateTaxesPaid(string startDate, string endDate)
         {
             //Performs the calculation. Attempts to convert to double. If not possible returns 0 (No taxes paid).
             try
@@ -539,7 +539,7 @@ namespace Moneta
         //Post: The total taxes collected, from the invoices, within the given date range are calculated
         //Description: Finds the product of the items sold and tax percentage, for items associated 
         //             to invoices within the time frame.
-        private double CalculateTaxesCollected(string startDate, string endDate)
+        private double calculateTaxesCollected(string startDate, string endDate)
         {
             //Local variables to store taxes collected and invoice refrences
             double sumTaxCollected = 0;
@@ -603,7 +603,7 @@ namespace Moneta
         //Pre: The number of months for which to calculate the monthly expenses.
         //Post: The monthly expense breakdown in a array of doubles
         //Description: Finds date ranges for the months indicated and finds the expenses associated with the ranges.
-        private double[] CalculatePastMonthsExpenses(int numMonths)
+        private double[] calculatePastMonthsExpenses(int numMonths)
         {
             //Creates a local double array with the size being the numMonths being calculated
             double[] pastMonthlyExpenses = new double[numMonths];
@@ -637,7 +637,7 @@ namespace Moneta
         //Pre: The number of months for which to calculate the monthly expenses.
         //Post: The monthly revenue breakdown in a array of doubles
         //Description: Finds date ranges for the months indicated and finds the revenues associated with the ranges.
-        private double[] CalculatePastMonthsRevenues(int numMonths)
+        private double[] calculatePastMonthsRevenues(int numMonths)
         {
             //Creates a double array with the size being the number of months for which the rev is being calculated
             double[] pastMonthlyRevenues = new double[numMonths];
@@ -650,7 +650,7 @@ namespace Moneta
                 string startDate = DateTime.Today.AddMonths(-i).Date.ToString("d", data.dateCulture);
 
                 //Calls for the calculation of the revenue within the given range, and adds to the monthly revenues array at the appropriate index.
-                double monthlyRev = CalculateRevenue(startDate, endDate);
+                double monthlyRev = calculateRevenue(startDate, endDate);
                 pastMonthlyRevenues[i - 1] = monthlyRev;
             }
 
@@ -661,7 +661,7 @@ namespace Moneta
         //Pre: None
         //Post: Generates a profit loss statement, in PDF form and opens it up.
         //Description: Compiles the data, and adds onto a PDF using the iTextSharp dll
-        public void GenerateProfitLoss()
+        public void generateProfitLoss()
         {
             //Creates variables to store the document path
             string docPath;
@@ -856,12 +856,12 @@ namespace Moneta
 
                 //Creates the expenses series and adds in the values
                 frm.chrtPDFExport.Series.Add("Expenses");
-                frm.chrtPDFExport.Series[0].Points.DataBindXY(months, CalculatePastMonthsExpenses(numMonths));
+                frm.chrtPDFExport.Series[0].Points.DataBindXY(months, calculatePastMonthsExpenses(numMonths));
                 frm.chrtPDFExport.Series[0].ChartType = SeriesChartType.Bar;
 
                 //Creates the revenues series and adds in the valeus
                 frm.chrtPDFExport.Series.Add("Revenues");
-                frm.chrtPDFExport.Series[1].Points.DataBindXY(months, CalculatePastMonthsRevenues(numMonths));
+                frm.chrtPDFExport.Series[1].Points.DataBindXY(months, calculatePastMonthsRevenues(numMonths));
                 frm.chrtPDFExport.Series[1].ChartType = SeriesChartType.Bar;
 
                 //Creates a variable to store the chart image  in memory. Then converts to iTextSharp readable format

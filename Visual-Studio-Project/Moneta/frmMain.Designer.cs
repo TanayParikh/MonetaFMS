@@ -1,6 +1,6 @@
 namespace Moneta
 {
-    partial class frmMain
+    partial class FrmMain
     {
         /// <summary>
         /// Required designer variable.
@@ -33,7 +33,7 @@ namespace Moneta
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMain));
             this.formsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.frmclientsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.frminvoicesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -1807,7 +1807,7 @@ namespace Moneta
             this.Controls.Add(this.pnlExpenses);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "frmMain";
+            this.Name = "FrmMain";
             this.Text = "Moneta FMS";
             this.Load += new System.EventHandler(this.frmMain_Load);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.frmMain_MouseDown);

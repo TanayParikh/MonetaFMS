@@ -26,10 +26,10 @@ namespace Moneta
     {
         //Local shared data and form refrences used to access main form data
         private SharedData data;
-        private frmMain frm;
+        private FrmMain frm;
 
         //Class constructor with the form and shared data as parameters
-        public ClientModule(frmMain frm, SharedData data)
+        public ClientModule(FrmMain frm, SharedData data)
         {
             //Locally stores the refrences to the parameters
             this.frm = frm;
@@ -39,7 +39,7 @@ namespace Moneta
         //Pre: None
         //Post: Creates the client in the database clients datatable.
         //Description. Given the specified form control information, creates a client through an sql command.
-        public void CreateClient()
+        public void createClient()
         {
             //Ensures that the data collected is in the valid format/length
             bool isDataValid = false;
@@ -132,7 +132,7 @@ namespace Moneta
                 newClient.ExecuteNonQuery();
 
                 //Re-fills the client table with the new data and informs user of successful entry
-                frm.SetUpClientAutofill();
+                frm.setUpClientAutofill();
                 frm.clientsTableAdapter.Fill(frm.mydbDataSet.clients);
                 MessageBox.Show(firstName + " " + lastName + " was successfully added to the database.");
             }
@@ -150,7 +150,7 @@ namespace Moneta
         public void dgvDataError(object sender, DataGridViewDataErrorEventArgs error)
         {
             //Calls for the handling of the error.
-            data.DisplayDGVError(sender, error);
+            data.displayDGVError(sender, error);
         }
     }
 }

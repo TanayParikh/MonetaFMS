@@ -100,7 +100,7 @@ namespace Moneta
         //Pre: The error type and the sender object.
         //Post: Informs the user of the error
         //Description. Determines what the error was in the dgv, and based on that informs the user.
-        public void DisplayDGVError(object sender, DataGridViewDataErrorEventArgs error)
+        public void displayDGVError(object sender, DataGridViewDataErrorEventArgs error)
         {
             //Checks if it was a commit error. (User data not saved)
             if (error.Context == DataGridViewDataErrorContexts.Commit)
@@ -133,7 +133,7 @@ namespace Moneta
         //Pre: The sql query and the error message if necessary.
         //Post: Executes query. Returns boolean success result.
         //Description: Executes the sql query with the data connection. Returns whether it was successful.
-        public bool ExecuteSQLQuery(string query, string errorMessage)
+        public bool executeSQLQuery(string query, string errorMessage)
         {
             //Attempts to execute query
             try
@@ -166,7 +166,7 @@ namespace Moneta
         // Pre: None
         // Post: The zampplite server is set up.
         // Description: Unzips the server if need be and starts it up. 
-        public void SetupNewProgram()
+        public void setupNewProgram()
         {
             driveName = Application.StartupPath.Substring(0, Application.StartupPath.IndexOf('\\')) + "\\";
             
@@ -195,14 +195,14 @@ namespace Moneta
 
             // Starts up local xampp server
             string[] myArguments = { "y", "n", "y", "x" };
-            StartProcess(driveName + "\\MonetaDatabase\\xampplite\\setup_xampp.bat", string.Join(" ", myArguments));
-            StartProcess(driveName + "\\MonetaDatabase\\xampplite\\mysql_start.bat");
+            startProcess(driveName + "\\MonetaDatabase\\xampplite\\setup_xampp.bat", string.Join(" ", myArguments));
+            startProcess(driveName + "\\MonetaDatabase\\xampplite\\mysql_start.bat");
         }
 
         // Pre: processName and commandLineArgs of process.
         // Post: Executes process in background.
         // Description: Runs command line process. 
-        public int StartProcess(string processName, string commandLineArgs = null)
+        public int startProcess(string processName, string commandLineArgs = null)
         {
             Process process = new Process
             {

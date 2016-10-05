@@ -31,7 +31,7 @@ namespace Moneta
     internal class InvoiceModule
     {
         //Form and shared data variables to store refrences from the main class
-        private frmMain frm;
+        private FrmMain frm;
         public SharedData data;
 
         //Valid Client IDs
@@ -41,7 +41,7 @@ namespace Moneta
         private int curInvoiceID;
 
         //Class constructor with the form and shared data passed in as refrences
-        public InvoiceModule(frmMain frmMain, SharedData data)
+        public InvoiceModule(FrmMain frmMain, SharedData data)
         {
             //Locally stores the parameters
             this.frm = frmMain;
@@ -51,26 +51,30 @@ namespace Moneta
         //Pre: None
         //Post: Initializes specialty columns on the invoices dgv.
         //Description: Creates checkbox columns for the quote and paid categories. Makes the text columns for those values invisible.
-        public void Initialize()
+        public void initialize()
         {
             //Creates a new checkbox column for the quotes. A checkbox indicates a quote, an unchecked entry indicates an invoice.
             //Creates flatstyle checkbox, sortable in nature and adds to the data grid view
-            DataGridViewCheckBoxColumn quoteColumn = new DataGridViewCheckBoxColumn();
-            quoteColumn.HeaderText = "Quote";
-            quoteColumn.Name = "QuoteCheckbox";
-            quoteColumn.FlatStyle = FlatStyle.Standard;
-            quoteColumn.ThreeState = false;
+            DataGridViewCheckBoxColumn quoteColumn = new DataGridViewCheckBoxColumn
+            {
+                HeaderText = "Quote",
+                Name = "QuoteCheckbox",
+                FlatStyle = FlatStyle.Standard,
+                ThreeState = false
+            };
             quoteColumn.CellTemplate.Style.BackColor = System.Drawing.Color.LightBlue;
             quoteColumn.SortMode = DataGridViewColumnSortMode.Automatic;
             frm.dgvInvoices.Columns.Add(quoteColumn);
 
             //Creates a new checkbox column indicating whether the invoice has been paid or not.
             //Creates flatstyle checkbox, sortable in nature and adds to the data grid view
-            DataGridViewCheckBoxColumn paidColumn = new DataGridViewCheckBoxColumn();
-            paidColumn.HeaderText = "Paid";
-            paidColumn.Name = "PaidCheckbox";
-            paidColumn.FlatStyle = FlatStyle.Standard;
-            paidColumn.ThreeState = false;
+            DataGridViewCheckBoxColumn paidColumn = new DataGridViewCheckBoxColumn
+            {
+                HeaderText = "Paid",
+                Name = "PaidCheckbox",
+                FlatStyle = FlatStyle.Standard,
+                ThreeState = false
+            };
             paidColumn.CellTemplate.Style.BackColor = System.Drawing.Color.LightBlue;
             paidColumn.SortMode = DataGridViewColumnSortMode.Automatic;
             frm.dgvInvoices.Columns.Add(paidColumn);
@@ -87,13 +91,13 @@ namespace Moneta
         public void dgvCellClick()
         {
             //Calls for the display of the appropriate list of items in the items dgv
-            DisplayExistingInvoice();
+            displayExistingInvoice();
         }
 
         // Pre: None
         // Post: Invoices view is displayed.
         // Description: Makes all CreateEditInvoice elements invisible.
-        public void ReturnToInvoices()
+        public void returnToInvoices()
         {
             frm.pnlCreateEditInvoice.Visible = false;
         }
@@ -101,7 +105,7 @@ namespace Moneta
         //Pre: None
         //Post: Calls for the display of all invoice data of the invoice selected.
         //Description: Makes UI elements visible and populates data. 
-        private void DisplayExistingInvoice()
+        private void displayExistingInvoice()
         {
             //If the cell selected's column index is equal to 0 (invoice id column), executes
             if (frm.dgvInvoices.CurrentCell.ColumnIndex.Equals(0))
@@ -114,7 +118,7 @@ namespace Moneta
                     // Resets the client autofill box
                     frm.txtInvoiceClientName.Text = string.Empty;
 
-                    DisplayItems();
+                    displayItems();
                 }
             }
         }
@@ -122,7 +126,7 @@ namespace Moneta
         //Pre: None
         //Post: Calls for the display of items, and sets up the invoice to be edited
         //Description: Arranges for the form controls to show invoice data, and for the items of the invoice to be displayed. 
-        private void DisplayItems()
+        private void displayItems()
         {
             //Makes the create edit invoice label visible and sets the invoice id and client id label/num box
             frm.lblCreateEditInvoiceItems.Visible = true;
@@ -165,13 +169,13 @@ namespace Moneta
             frm.dtpDate.Value = new DateTime(Convert.ToInt32(date[2]), Convert.ToInt32(date[0]), Convert.ToInt32(date[1]));
 
             //Fills the invoice dgv with the appropriate invoice items
-            FillItemsData(Convert.ToInt32(frm.dgvInvoices.CurrentCell.Value));
+            fillItemsData(Convert.ToInt32(frm.dgvInvoices.CurrentCell.Value));
         }
 
         //Pre: None
         //Post: Displays the appropriate list of items in the dgv, based on the invoice selected.
         //Description: Fetches the list of items from items datatable in the database. Displays items with prices and taxes
-        private void FillItemsData(int invoiceID)
+        private void fillItemsData(int invoiceID)
         {
             //Uses the data connection
             using (data.connection)
@@ -286,8 +290,8 @@ namespace Moneta
                                 + ");";
 
                             //Runs the sql command with the data connection
-                            MySqlCommand insertCMD = new MySqlCommand(sql, data.connection);
-                            insertCMD.ExecuteNonQuery();
+                            MySqlCommand insertCmd = new MySqlCommand(sql, data.connection);
+                            insertCmd.ExecuteNonQuery();
 
                             //Runs the sql command with the data connection
                             MySqlCommand getNewItemID = new MySqlCommand("SELECT ItemID FROM items ORDER BY ItemID DESC LIMIT 1;", data.connection);
@@ -315,8 +319,8 @@ namespace Moneta
                                     + ";";
 
                             //Using data connection, executes command
-                            MySqlCommand updateCMD = new MySqlCommand(sql, data.connection);
-                            updateCMD.ExecuteNonQuery();
+                            MySqlCommand updateCmd = new MySqlCommand(sql, data.connection);
+                            updateCmd.ExecuteNonQuery();
                         }
                         else
                         {
@@ -336,7 +340,7 @@ namespace Moneta
         //Pre: The event args and sender for the action.
         //Post: Updates the existing invoice data in dgv invoices based on form controls.
         //Description: Reads in form controls and updates the dgv invoices.
-        public void UpdateExistingInvoice(object sender, EventArgs e)
+        public void updateExistingInvoice(object sender, EventArgs e)
         {
             //Based on whether or not the checkbox for the quote is selected in the form control, updates accordingly in dgv.
             frm.dgvInvoices.Rows[frm.dgvInvoices.CurrentCell.RowIndex].Cells[5].Value = frm.cbxQuote.Checked;
@@ -345,7 +349,7 @@ namespace Moneta
             frm.dgvInvoices.Rows[frm.dgvInvoices.CurrentCell.RowIndex].Cells[6].Value = frm.cbxPaid.Checked;
 
             //Reads the checkboxes, and updates the natural language equivalent boxes
-            ReadInvoiceCheckboxes();
+            readInvoiceCheckboxes();
 
             //Updates the date in the dgv to that specified in the date time picker
             frm.dgvInvoices.Rows[frm.dgvInvoices.CurrentCell.RowIndex].Cells[1].Value = frm.dtpDate.Value.Month + "/" + frm.dtpDate.Value.Day + "/" + frm.dtpDate.Value.Year + " 12:00:00 AM";
@@ -355,7 +359,7 @@ namespace Moneta
             frm.invoicesTableAdapter.Update(frm.invoicesDataSet.invoices);
         }
 
-        public void SetupNewInvoice()
+        public void setupNewInvoice()
         {
             // Disables print and email buttons till invoice is created
             frm.btnPrintInvoice.Enabled = false;
@@ -387,7 +391,7 @@ namespace Moneta
         //Pre: None
         //Post: Adds an invoice, with the specifications selected to the invoices data table
         //Description: Fetches data from form controls, and creates an sql query to add the invoiceinto the database.
-        public void CreateInvoice()
+        public void createInvoice()
         {
             //Creates local variables to store control values
             string quote;
@@ -422,7 +426,7 @@ namespace Moneta
                         + "');";
 
             //Calls for the execution of the query, with a error message passed in
-            if (data.ExecuteSQLQuery(sql, "Invalid Client ID, please enter a valid client id."))
+            if (data.executeSQLQuery(sql, "Invalid Client ID, please enter a valid client id."))
             {
                 //If the query was successfully performed, re-enables the update client button.
                 // frm.btnUpdateExistingInvoice.Visible = true;
@@ -456,7 +460,7 @@ namespace Moneta
                 frm.lblInvoiceIDNum.Text = invoiceID.ToString();
 
                 // Fills items dgv and makes add items button invisible
-                FillItemsData(invoiceID);
+                fillItemsData(invoiceID);
                 frm.btnCreateEditAddItems.Visible = false;
 
                 //Informs the user that the invoice has been created.
@@ -465,7 +469,7 @@ namespace Moneta
 
             //Fills the invoice checkboxes after refreshing the table with the new values.
             frm.invoicesTableAdapter.Fill(frm.invoicesDataSet.invoices);
-            UpdateInvoiceCheckboxes();
+            updateInvoiceCheckboxes();
 
             //Deselects the first cell, and selects the row just added in, so to display the appropriate items table
             frm.dgvInvoices.Rows[0].Selected = false;
@@ -474,7 +478,7 @@ namespace Moneta
 
         //Pre: The event args storing the column index of the column the user attempted to sort
         //Post: The column is sorted
-        public void SortInvoices(DataGridViewCellMouseEventArgs e)
+        public void sortInvoices(DataGridViewCellMouseEventArgs e)
         {
             //If the column was #5 (Quotes/Invoices)
             if (e.ColumnIndex == 5)
@@ -504,25 +508,25 @@ namespace Moneta
             }
 
             //Updates the checkboxes based on newly sorted arrangement
-            UpdateInvoiceCheckboxes();
+            updateInvoiceCheckboxes();
         }
 
         //Calls for the generation of the invoice with emailing (Button Press Event handler)
-        public void PrintInvoice()
+        public void printInvoice()
         {
-            GenerateDoc(false);
+            generateDoc(false);
         }
 
         //Calls for the generation of the invoice with emailing (Button Press Event handler)
-        public void SendInvoice()
+        public void sendInvoice()
         {
-            GenerateDoc(true);
+            generateDoc(true);
         }
 
         //Pre: A boolean representing whether or not to email the generated doc to the client.
         //Post: Generates the PDF, and based on parameters emails/opens it up
         //Description: Using the iTextSharp dll, creates a PDF of the doc, sourcing data from the invoices, items and clients database
-        private void GenerateDoc(bool toEmail)
+        private void generateDoc(bool toEmail)
         {
             //Ensures an invoice has been selected
             if (frm.lblInvoiceIDNum.Text != "Select an Invoice")
@@ -894,7 +898,7 @@ namespace Moneta
                 if (toEmail)
                 {
                     //Calls for the emailing of the doc with client email and the path of the generated invoice. Then opens the invoice.
-                    SendEmail(invoicePath, clientEmail);
+                    sendEmail(invoicePath, clientEmail);
                     Process.Start(invoicePath);
                 }
                 else
@@ -913,7 +917,7 @@ namespace Moneta
         //Pre: The string path to the invoice generated, and the client's email address.
         //Post: Emails the invoice to the client.
         //Description: Sends an email, using SMTP to the client, with the invoice created attached as a PDF.
-        private void SendEmail(string invoicePath, string clientEmail)
+        private void sendEmail(string invoicePath, string clientEmail)
         {
             //Attempts to send the email with SMTP information provided
             try
@@ -968,10 +972,10 @@ namespace Moneta
         //Pre: None
         //Post: Indicates the dgv selection has changed and reads in the data from the dgv.
         //Description: Reads in check box data and fills the binding source and table adapter.
-        public void DGVInvoicesSelectionChanged()
+        public void dgvInvoicesSelectionChanged()
         {
             //Reads checkbox data
-            ReadInvoiceCheckboxes();
+            readInvoiceCheckboxes();
 
             //Rebinds the table (Updates dgv data to dataset in database)
             data.binding.EndEdit();
@@ -985,20 +989,20 @@ namespace Moneta
             if (frm.lblInvoiceIDNum.Text != "New Invoice")
             {
                 // Updates invoice data.
-                UpdateExistingInvoice(sender, e);
+                updateExistingInvoice(sender, e);
 
                 //Indicates existing invoice is to be updated, alongside dgv invoices
-                DGVInvoicesSelectionChanged();
+                dgvInvoicesSelectionChanged();
             }
 
             // Returns to invoices view
-            ReturnToInvoices();
+            returnToInvoices();
         }
 
         //Pre: None
         //Post: The checkboxes of the quote and paid columns are updated
         //Description: Reads in the text values from the hidden columns and interprets the proper check state of the boxes.
-        public void UpdateInvoiceCheckboxes()
+        public void updateInvoiceCheckboxes()
         {
             //Runs for all the rows of checkboxes
             for (int i = 0; i < frm.dgvInvoices.RowCount; ++i)
@@ -1030,7 +1034,7 @@ namespace Moneta
         //Pre: None
         //Post: Reads in the checkbox values, and translates to natural language equivalent in datatable columns
         //Description: For all the invoices, reads in checkboxes, and sets the text columns to the appropriate true/false state.
-        private void ReadInvoiceCheckboxes()
+        private void readInvoiceCheckboxes()
         {
             //Runs for all the rows in dgv invoices
             for (int i = 0; i < frm.dgvInvoices.RowCount - 1; ++i)
@@ -1069,7 +1073,7 @@ namespace Moneta
 
         //Pre: None
         //Post: 
-        public void SetUpAutofillClientName()
+        public void setUpAutofillClientName()
         {
             //DataView dv = new DataView(clientsDataSet);
             frm.txtInvoiceClientName.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
@@ -1111,7 +1115,7 @@ namespace Moneta
         // Pre: None
         // Post: The client ID num is set
         // Description: Scans the Client name textbox to find client id
-        public void ScanForClientID()
+        public void scanForClientID()
         {
             // Gets the last index of the InvoiceClientName textbox
             int lastIndex = frm.txtInvoiceClientName.Text.LastIndexOf("- CID: ");
