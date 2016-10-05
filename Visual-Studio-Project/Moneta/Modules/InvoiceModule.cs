@@ -11,10 +11,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
 
@@ -23,9 +19,7 @@ using System.IO;
 using MySql.Data.MySqlClient;
 
 //Libraries used for PDF creation
-using iTextSharp;
 using iTextSharp.text;
-using iTextSharp.xmp;
 using iTextSharp.text.pdf;
 
 //Library used for SMTP mailing
@@ -34,14 +28,14 @@ using System.Net.Mail;
 
 namespace Moneta
 {
-    class InvoiceModule
+    internal class InvoiceModule
     {
         //Form and shared data variables to store refrences from the main class
-        frmMain frm;
+        private frmMain frm;
         public SharedData data;
 
         //Valid Client IDs
-        List<int> clientIDs = new List<int>();
+        private List<int> clientIDs = new List<int>();
 
         //Stores the id of the invoice currently being worked on
         private int curInvoiceID;

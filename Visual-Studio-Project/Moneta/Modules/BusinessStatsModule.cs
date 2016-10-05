@@ -32,31 +32,31 @@ using System.Windows.Forms.DataVisualization.Charting;
 
 namespace Moneta
 {
-    class BusinessStatsModule
+    internal class BusinessStatsModule
     {
         //Stores module specific refrence to shared data and form
-        SharedData data;
-        frmMain frm;
+        private SharedData data;
+        private frmMain frm;
 
         //Constants to identify stats within the stats arrays
-        const int REVENUE = 0;
-        const int EXPENSES = 1;
-        const int PROFIT = 2;
-        const int COGS = 3;
-        const int ACCOUNTS_RECEIVABLE = 4;
-        const int GROSS_MARGIN = 5;
-        const int TAXES_PAID = 6;
-        const int TAXES_COLLECTED = 7;
+        private const int REVENUE = 0;
+        private const int EXPENSES = 1;
+        private const int PROFIT = 2;
+        private const int COGS = 3;
+        private const int ACCOUNTS_RECEIVABLE = 4;
+        private const int GROSS_MARGIN = 5;
+        private const int TAXES_PAID = 6;
+        private const int TAXES_COLLECTED = 7;
 
         //Stores the number of months, for which stats are being calculated
-        int numMonths;
+        private int numMonths;
 
         //Stores the COGS computed. Used for multiple calculations.
-        double sumCogs = 0;
+        private double sumCogs = 0;
 
         //Arrays to store the stat names and values
-        string[] statHeadings;
-        double[] stats = new double[8];
+        private string[] statHeadings;
+        private double[] stats = new double[8];
 
         //Class constructor with the form and shared data as parameters
         public BusinessStatsModule(frmMain frm, SharedData data)

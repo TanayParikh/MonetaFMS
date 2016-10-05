@@ -22,11 +22,11 @@ using MySql.Data.MySqlClient;
 
 namespace Moneta
 {
-    class ClientModule
+    internal class ClientModule
     {
         //Local shared data and form refrences used to access main form data
-        SharedData data;
-        frmMain frm;
+        private SharedData data;
+        private frmMain frm;
 
         //Class constructor with the form and shared data as parameters
         public ClientModule(frmMain frm, SharedData data)

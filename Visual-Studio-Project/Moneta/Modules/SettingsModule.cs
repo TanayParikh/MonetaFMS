@@ -24,11 +24,11 @@ using MySql.Data.MySqlClient;
 
 namespace Moneta
 {
-    class SettingsModule
+    internal class SettingsModule
     {
         //Class shared data and form variables used to access main form data
-        SharedData data;
-        frmMain frm;
+        private SharedData data;
+        private frmMain frm;
 
         //Stores the path to the settings file
         private string filePath;

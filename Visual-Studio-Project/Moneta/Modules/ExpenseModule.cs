@@ -18,11 +18,11 @@ using System.IO;
 
 namespace Moneta
 {
-    class ExpenseModule
+    internal class ExpenseModule
     {
         //Class shared data and form variables used to access main form data
-        SharedData data;
-        frmMain frm;
+        private SharedData data;
+        private frmMain frm;
         
         //Stores the dgv's previous value's and position
         private string oldCellValue = "";

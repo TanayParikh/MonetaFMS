@@ -25,7 +25,7 @@ using ICSharpCode.SharpZipLib.Zip;
 
 namespace Moneta
 {
-    class SharedData
+    internal class SharedData
     {
         //Database connection variables. Used to connect to database tables
         public MySqlConnectionStringBuilder builder = new MySqlConnectionStringBuilder();
