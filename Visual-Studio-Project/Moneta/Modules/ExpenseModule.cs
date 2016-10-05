@@ -88,38 +88,52 @@ namespace Moneta
             //Ensures the box isn't null
             if (autoText != null)
             {
-                //Runs if the current cell is in column 5, that of the expense categorization
-                if (frm.dgvExpenses.CurrentCell.ColumnIndex == 5)
-                {
-                    //Sets the tooltip for the text box, as being the expense categories, seperated by new lines
-                    expenseCategoriesTip.SetToolTip(autoText, string.Join(Environment.NewLine, expenseCategories));
-
-                    //If it isn't, adds autocomplete for the text box.
-                    autoText.AutoCompleteMode = AutoCompleteMode.Suggest;
-                    autoText.AutoCompleteSource = AutoCompleteSource.CustomSource;
-
-                    //Creates an autocomplete collection, and associates it with the textbox.
-                    AutoCompleteStringCollection dataCollection = new AutoCompleteStringCollection();
-                    autoCompleteItems(dataCollection, true);
-                    autoText.AutoCompleteCustomSource = dataCollection;
-                }
-                //Runs if the current textbox isn't part of the expense categorization column
-                else
-                {
-                    //Removes any tool tips
-                    expenseCategoriesTip.RemoveAll();
-
-                    //Creates a blank autocomplete collection
-                    autoText.AutoCompleteMode = AutoCompleteMode.Suggest;
-                    autoText.AutoCompleteSource = AutoCompleteSource.CustomSource;
-                    AutoCompleteStringCollection dataCollection = new AutoCompleteStringCollection();
-
-                    //Associates it with the textbox to remove any autocorrect fields
-                    autoCompleteItems(dataCollection, false);
-                    autoText.AutoCompleteCustomSource = dataCollection;
-
-                }
+                associateToolTips(expenseCategoriesTip, autoText);
             }
+        }
+
+        private void associateToolTips(ToolTip expenseCategoriesTip, TextBox autoText)
+        {
+            //Runs if the current cell is in column 5, that of the expense categorization
+            if (frm.dgvExpenses.CurrentCell.ColumnIndex == 5)
+            {
+                setExpenseCategoryToolTip(expenseCategoriesTip, autoText);
+            }
+            //Runs if the current textbox isn't part of the expense categorization column
+            else
+            {
+                //Removes any tool tips
+                removeExpenseCategoryToolTip(expenseCategoriesTip, autoText);
+            }
+        }
+
+        private void removeExpenseCategoryToolTip(ToolTip expenseCategoriesTip, TextBox autoText)
+        {
+            expenseCategoriesTip.RemoveAll();
+
+            //Creates a blank autocomplete collection
+            autoText.AutoCompleteMode = AutoCompleteMode.Suggest;
+            autoText.AutoCompleteSource = AutoCompleteSource.CustomSource;
+            AutoCompleteStringCollection dataCollection = new AutoCompleteStringCollection();
+
+            //Associates it with the textbox to remove any autocorrect fields
+            autoCompleteItems(dataCollection, false);
+            autoText.AutoCompleteCustomSource = dataCollection;
+        }
+
+        private void setExpenseCategoryToolTip(ToolTip expenseCategoriesTip, TextBox autoText)
+        {
+            //Sets the tooltip for the text box, as being the expense categories, seperated by new lines
+            expenseCategoriesTip.SetToolTip(autoText, string.Join(Environment.NewLine, expenseCategories));
+
+            //If it isn't, adds autocomplete for the text box.
+            autoText.AutoCompleteMode = AutoCompleteMode.Suggest;
+            autoText.AutoCompleteSource = AutoCompleteSource.CustomSource;
+
+            //Creates an autocomplete collection, and associates it with the textbox.
+            AutoCompleteStringCollection dataCollection = new AutoCompleteStringCollection();
+            autoCompleteItems(dataCollection, true);
+            autoText.AutoCompleteCustomSource = dataCollection;
         }
 
         //Pre: The autcomplete collection to be modified, and whether the collection is to be added to or removed from.
@@ -244,37 +258,7 @@ namespace Moneta
             //Checks if the time elapsed and hourly wage is greater than 0
             if (timeElapsed > 0d && hourlyWage > 0d)
             {
-                //Sets the sql query headings and values
-                string sql = "INSERT INTO expenses (Date, Description, ";
-                string values = " VALUES (str_to_date('"
-                    + dateTime.ToString("MM/dd/yyyy")
-                    + "', '%m/%d/%Y'),";
-
-                //Checks to see if the invoice ID is greater than 0, and if so, if it exists in the invoices table.
-                if (frm.numExpenseTimeInvoiceID.Value > 0 && 
-                    data.executeSQLQuery("SELECT COUNT(1) FROM invoices WHERE InvoiceID = " + 
-                    frm.numExpenseTimeInvoiceID.Value, 
-                    "If you'd like to associate an invoice. Please enter in a valid invoice ID"))
-                {
-                    //If not puts a default description of working on project
-                    values += "'Work on Project', ";
-
-                    //If so adds the invoice header and value into the sql statement
-                    values += Convert.ToInt32(frm.numExpenseTimeInvoiceID.Value) + ", ";
-                    sql += "Invoices_InvoiceID,";
-                }
-                else
-                {
-                    //If not puts a default description of working on the company
-                    values += "'Work on Company', ";
-                }
-
-                //Adds the ending of the sql statement with the remaining fields. 
-                sql += "ExpenseCategory, TotalAmount, TaxAmount)";
-                values += "'Wages', " + Math.Round(expense, 2) + "," + 0 + ") ";
-
-                //Executes sql command with sql heading and values
-                data.executeSQLQuery(sql + values, "Invalid Invoice ID. Please enter a valid invoice ID.");
+                addTimeExpense(dateTime, expense);
 
                 //Updates database and dgv expenses. Also updates images column
                 frm.expensesTableAdapter.Fill(frm.expensesDataSet.expenses);
@@ -287,52 +271,53 @@ namespace Moneta
             }
         }
 
+        private void addTimeExpense(DateTime dateTime, double expense)
+        {
+            //Sets the sql query headings and values
+            string sql = "INSERT INTO expenses (Date, Description, ";
+            string values = " VALUES (str_to_date('"
+                            + dateTime.ToString("MM/dd/yyyy")
+                            + "', '%m/%d/%Y'),";
+
+            //Checks to see if the invoice ID is greater than 0, and if so, if it exists in the invoices table.
+            if (frm.numExpenseTimeInvoiceID.Value > 0 &&
+                data.executeSQLQuery("SELECT COUNT(1) FROM invoices WHERE InvoiceID = " +
+                                     frm.numExpenseTimeInvoiceID.Value,
+                    "If you'd like to associate an invoice. Please enter in a valid invoice ID"))
+            {
+                //If not puts a default description of working on project
+                values += "'Work on Project', ";
+
+                //If so adds the invoice header and value into the sql statement
+                values += Convert.ToInt32(frm.numExpenseTimeInvoiceID.Value) + ", ";
+                sql += "Invoices_InvoiceID,";
+            }
+            else
+            {
+                //If not puts a default description of working on the company
+                values += "'Work on Company', ";
+            }
+
+            //Adds the ending of the sql statement with the remaining fields. 
+            sql += "ExpenseCategory, TotalAmount, TaxAmount)";
+            values += "'Wages', " + Math.Round(expense, 2) + "," + 0 + ") ";
+
+            //Executes sql command with sql heading and values
+            data.executeSQLQuery(sql + values, "Invalid Invoice ID. Please enter a valid invoice ID.");
+        }
+
         //Pre: None
         //Post: Submits the distance specified by the user into the dgv expenses and expenses table
         //Description: Gets the value listed in the expenses num box, and transfers it over to the tables/dgv expenses.
         public void submitDistance()
         {
-            //Gets today's date
-            DateTime dateTime = DateTime.UtcNow.Date;
-
             //Gets the distance travelled, rounded to two decimal places
             double distanceTravelled = Math.Round(Convert.ToDouble(frm.numDistance.Value), 2);
 
             //Checks if the distance travelled is greater than 0
             if (distanceTravelled > 0d)
             {
-                //Sets the sql query headings and values
-                string sql = "INSERT INTO expenses (Date, Description, ";
-                string values = " VALUES (str_to_date('"
-                    + dateTime.ToString("MM/dd/yyyy")
-                    + "', '%m/%d/%Y'),";
-
-                //Checks if there is a description for the distance
-                if (!String.IsNullOrEmpty(frm.txtDistanceDescription.Text))
-                {
-                    //If so adds the description to the values
-                    values += "'" + frm.txtDistanceDescription.Text + "',";
-                }
-                else
-                {
-                    //If not puts a default description
-                    values += "'Travel Fuel Expense', ";
-                }
-
-                //Checks to see if the invoice ID is greater than 0, and if so, if it exists in the invoices table.
-                if (frm.numDistanceInvoiceID.Value > 0 && data.executeSQLQuery("SELECT COUNT(1) FROM invoices WHERE InvoiceID = " + frm.numDistanceInvoiceID.Value, "If you'd like to associate an invoice. Please enter in a valid invoice ID"))
-                {
-                    //If so adds the invoice header and value into the sql statement
-                    values += Convert.ToInt32(frm.numDistanceInvoiceID.Value) + ", ";
-                    sql += "Invoices_InvoiceID,";
-                }
-
-                //Adds the ending of the sql statement with the remaining fields. Calculates cost using cost/km specified in settings
-                sql += "ExpenseCategory, TotalAmount, TaxAmount)";
-                values += "'Motor Vehicle Expenses', " + Math.Round((distanceTravelled * Convert.ToDouble(data.generalSettings[SharedData.COST_PER_KM])), 2) + "," + 0 + ") ";
-
-                //Executes sql command with sql heading and values
-                data.executeSQLQuery(sql + values, "Invalid Invoice ID. Please enter a valid invoice ID.");
+                addDistanceExpense(distanceTravelled);
 
                 //Updates database and dgv expenses. Also updates images column
                 frm.expensesTableAdapter.Fill(frm.expensesDataSet.expenses);
@@ -343,6 +328,46 @@ namespace Moneta
                 //Informs user of invalid distance
                 MessageBox.Show("Please enter a valid distance travelled.");
             }
+        }
+
+        private void addDistanceExpense(double distanceTravelled)
+        {
+            //Sets the sql query headings and values
+            string sql = "INSERT INTO expenses (Date, Description, ";
+            string values = " VALUES (str_to_date('"
+                            + DateTime.UtcNow.Date.ToString("MM/dd/yyyy")
+                            + "', '%m/%d/%Y'),";
+
+            //Checks if there is a description for the distance
+            if (!String.IsNullOrEmpty(frm.txtDistanceDescription.Text))
+            {
+                //If so adds the description to the values
+                values += "'" + frm.txtDistanceDescription.Text + "',";
+            }
+            else
+            {
+                //If not puts a default description
+                values += "'Travel Fuel Expense', ";
+            }
+
+            //Checks to see if the invoice ID is greater than 0, and if so, if it exists in the invoices table.
+            if (frm.numDistanceInvoiceID.Value > 0 &&
+                data.executeSQLQuery("SELECT COUNT(1) FROM invoices WHERE InvoiceID = " + frm.numDistanceInvoiceID.Value,
+                    "If you'd like to associate an invoice. Please enter in a valid invoice ID"))
+            {
+                //If so adds the invoice header and value into the sql statement
+                values += Convert.ToInt32(frm.numDistanceInvoiceID.Value) + ", ";
+                sql += "Invoices_InvoiceID,";
+            }
+
+            //Adds the ending of the sql statement with the remaining fields. Calculates cost using cost/km specified in settings
+            sql += "ExpenseCategory, TotalAmount, TaxAmount)";
+            values += "'Motor Vehicle Expenses', " +
+                      Math.Round((distanceTravelled*Convert.ToDouble(data.generalSettings[SharedData.COST_PER_KM])), 2) + "," +
+                      0 + ") ";
+
+            //Executes sql command with sql heading and values
+            data.executeSQLQuery(sql + values, "Invalid Invoice ID. Please enter a valid invoice ID.");
         }
 
         //Pre: None
@@ -377,105 +402,135 @@ namespace Moneta
         //Pre: None
         //Post: Opens the stored image file, or file dialog to associate a file, based on the current state of the image source.
         //Description: Checks if the cell click occured in the 8th (image view) column. If so based on whether an image is already associated, gets an image/opens up the existing image.
-        private void addRemoveImage(DataGridViewCellEventArgs e)
+        private void addRemoveImage(DataGridViewCellEventArgs cell)
         {
-            if (e.ColumnIndex != 8 || frm.dgvExpenses.CurrentCell.Value == null) return;
+            if (cell.ColumnIndex != 8 || frm.dgvExpenses.CurrentCell.Value == null) return;
 
             //Checks to see if the field is currently set to add (Means no image refrence has been associated with the expense)
-            switch (frm.dgvExpenses.CurrentCell.Value.ToString())
+            if (frm.dgvExpenses.CurrentCell.Value.ToString() == "Add")
             {
-                case "Add":
-                    //Opens the file dialog and waits for the user to select ok
-                    if (frm.ofdExpenses.ShowDialog() == DialogResult.OK)
-                    {
-                        //Gets the file path selected by the user
-                        string sourcePath = frm.ofdExpenses.FileName;
+                addExpenseImage(cell);
+            }
+            else if (frm.dgvExpenses.CurrentCell.Value.ToString() == "View")
+            {
+                viewExpenseImage(cell);
+            }
+        }
 
-                        //Checks if the expense directory exists, if not creates it
-                        if (!Directory.Exists(data.databasePath + "\\Expenses"))
-                        {
-                            Directory.CreateDirectory(data.databasePath + "\\Expenses");
-                        }
+        private void viewExpenseImage(DataGridViewCellEventArgs cell)
+        {
+            //Attempts to open up associated file for the expense
+            try
+            {
+                Process.Start(data.databasePath + "\\Expenses\\" + frm.dgvExpenses.Rows[cell.RowIndex].Cells[3].Value);
+            }
+            catch
+            {
+                //If opening fails, indicates invalid/corrupt file, and informs the user to re-add the file. 
+                frm.dgvExpenses.CurrentCell.Value = "Add";
+                MessageBox.Show("File not found");
 
-                        //Attempts to copy over the file into the directory
-                        try
-                        {
-                            //Copies the file over to the directory and associates the selected image with the expense by passing a refrence link
-                            File.Copy(sourcePath, data.databasePath + "\\Expenses\\" + Path.GetFileName(sourcePath));
-                            frm.dgvExpenses.Rows[e.RowIndex].Cells[3].Value = Path.GetFileName(sourcePath);
-                        }
-                        catch (IOException)
-                        {
-                            //Generates a random number to append to the file name to ensure duplication prevention
-                            int random = data.generator.Next(1, 99999);
+                //Attempts to build and execute the sql query to remove the image refrence
+                unreferenceImageFromExpense(cell);
+            }
+        }
 
-                            //Copies the file over to the directory and associates the selected image with the expense by passing a refrence link
-                            File.Copy(sourcePath, data.databasePath + "\\Expenses\\" + random + Path.GetFileName(sourcePath));
-                            frm.dgvExpenses.Rows[e.RowIndex].Cells[3].Value = random + Path.GetFileName(sourcePath);
-                        }
+        private void unreferenceImageFromExpense(DataGridViewCellEventArgs cell)
+        {
+            try
+            {
+                //Creates new sql query to remove image reference
+                string sql = "UPDATE expenses SET expenses.ImageReference = NULL WHERE expenses.ExpenseID = "
+                             + frm.dgvExpenses.Rows[cell.RowIndex].Cells[0].Value + ";";
 
-                        //Attempts to build and execute the sql query to update the image refrence
-                        try
-                        {
-                            //Creates new sql query to update image reference
-                            string sql = "UPDATE expenses SET expenses.ImageReference = '"
-                                         + frm.dgvExpenses.Rows[e.RowIndex].Cells[3].Value
-                                         + "' WHERE expenses.ExpenseID = "
-                                         + frm.dgvExpenses.Rows[e.RowIndex].Cells[0].Value + ";";
+                //Executes the query and supplies an empty error message
+                data.executeSQLQuery(sql, "");
 
-                            //Executes the query and supplies an error message
-                            data.executeSQLQuery(sql, " File could not be copied. Please move to another location and try again.");
+                //Updates the displayed table with the new data and indicates temp error by pass to ensure smoother experience
+                frm.expensesTableAdapter.Fill(frm.expensesDataSet.expenses);
+                updateImagesColumn();
+                data.tempByPass = true;
+            }
+                //Catches any exceptions and informs the user
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
 
-                            //Updates the displayed table with the new data and indicates temp error by pass to ensure smoother experience
-                            frm.expensesTableAdapter.Fill(frm.expensesDataSet.expenses);
-                            updateImagesColumn();
-                            data.tempByPass = true;
+        private void addExpenseImage(DataGridViewCellEventArgs cell)
+        {
+            //Opens the file dialog and waits for the user to select ok
+            if (frm.ofdExpenses.ShowDialog() == DialogResult.OK)
+            {
+                //Gets the file path selected by the user
+                string sourcePath = frm.ofdExpenses.FileName;
 
-                        }
-                            //Catches any exceptions and informs the user
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show(ex.Message);
-                        }
+                createExpenseDirectoryInDataWarehouse();
 
-                        //Sets the value of the current cell to view
-                        frm.dgvExpenses.CurrentCell.Value = "View";
-                    }
-                    break;
-                case "View":
-                    //Attempts to open up associated file for the expense
-                    try
-                    {
-                        Process.Start(data.databasePath + "\\Expenses\\" + frm.dgvExpenses.Rows[e.RowIndex].Cells[3].Value);
-                    }
-                    catch
-                    {
-                        //If opening fails, indicates invalid/corrupt file, and informs the user to re-add the file. 
-                        frm.dgvExpenses.CurrentCell.Value = "Add";
-                        MessageBox.Show("File not found");
+                //Attempts to copy over the file into the directory
+                copyExpenseFileToDataWarehouse(cell, sourcePath);
 
-                        //Attempts to build and execute the sql query to remove the image refrence
-                        try
-                        {
-                            //Creates new sql query to remove image reference
-                            string sql = "UPDATE expenses SET expenses.ImageReference = NULL WHERE expenses.ExpenseID = "
-                                         + frm.dgvExpenses.Rows[e.RowIndex].Cells[0].Value + ";";
+                //Attempts to build and execute the sql query to update the image refrence
+                string imageReference = (string)frm.dgvExpenses.Rows[cell.RowIndex].Cells[3].Value;
+                string expenseId = (string)frm.dgvExpenses.Rows[cell.RowIndex].Cells[0].Value;
 
-                            //Executes the query and supplies an empty error message
-                            data.executeSQLQuery(sql, "");
+                updateExpenseAddImage(imageReference, expenseId);
 
-                            //Updates the displayed table with the new data and indicates temp error by pass to ensure smoother experience
-                            frm.expensesTableAdapter.Fill(frm.expensesDataSet.expenses);
-                            updateImagesColumn();
-                            data.tempByPass = true;
+                //Sets the value of the current cell to view
+                frm.dgvExpenses.CurrentCell.Value = "View";
+            }
+        }
 
-                        }
-                            //Catches any exceptions and informs the user
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show(ex.Message);
-                        }
-                    }
+        private void createExpenseDirectoryInDataWarehouse()
+        {
+            if (!Directory.Exists(data.databasePath + "\\Expenses"))
+            {
+                Directory.CreateDirectory(data.databasePath + "\\Expenses");
+            }
+        }
+
+        private void updateExpenseAddImage(string imageReference, string expenseId)
+        {
+            try
+            {
+                //Creates new sql query to update image reference
+                string sql = "UPDATE expenses SET expenses.ImageReference = '"
+                             + imageReference
+                             + "' WHERE expenses.ExpenseID = "
+                             + expenseId + ";";
+
+                //Executes the query and supplies an error message
+                data.executeSQLQuery(sql, " File could not be copied. Please move to another location and try again.");
+
+                //Updates the displayed table with the new data and indicates temp error by pass to ensure smoother experience
+                frm.expensesTableAdapter.Fill(frm.expensesDataSet.expenses);
+                updateImagesColumn();
+                data.tempByPass = true;
+            }
+                //Catches any exceptions and informs the user
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void copyExpenseFileToDataWarehouse(DataGridViewCellEventArgs cell, string sourcePath)
+        {
+            try
+            {
+                //Copies the file over to the directory and associates the selected image with the expense by passing a refrence link
+                File.Copy(sourcePath, data.databasePath + "\\Expenses\\" + Path.GetFileName(sourcePath));
+                frm.dgvExpenses.Rows[cell.RowIndex].Cells[3].Value = Path.GetFileName(sourcePath);
+            }
+            catch (IOException)
+            {
+                //Generates a random number to append to the file name to ensure duplication prevention
+                int random = data.generator.Next(1, 99999);
+
+                //Copies the file over to the directory and associates the selected image with the expense by passing a refrence link
+                File.Copy(sourcePath, data.databasePath + "\\Expenses\\" + random + Path.GetFileName(sourcePath));
+                frm.dgvExpenses.Rows[cell.RowIndex].Cells[3].Value = random + Path.GetFileName(sourcePath);
             }
         }
 
@@ -486,11 +541,6 @@ namespace Moneta
         {
             //Ensures that the data collected is in the valid format/length
             bool isDataValid = false;
-
-            //Creates variables to assist in query generation
-            string newClientSql;
-            string newClientValues;
-            string sqlQuery;
 
             //Retrieves user input for client data form controls
             string date = frm.dtpExpenses.Value.Date.ToString("d", data.dateCulture);
@@ -531,9 +581,25 @@ namespace Moneta
             }
 
             //Creates two sql strings to help in query creation
+            insertExpenseToDatabase(date, description, expenseCategory, totalTax, totalAmount, invoiceID);
+
+            //Re-fills the expense table and images column with the new data and informs user of successful entry
+            frm.expensesTableAdapter.Fill(frm.expensesDataSet.expenses);
+            updateImagesColumn();
+            MessageBox.Show("Expense successfully added to the database.");
+        }
+
+        private void insertExpenseToDatabase(string date, string description, string expenseCategory, double totalTax,
+            double totalAmount, int invoiceID)
+        {
+            string newClientSql;
+            string newClientValues;
+            string sqlQuery;
+            
             //Fills first with names of values being modified, and second with values themselves
             newClientSql = "INSERT INTO expenses (Date, Description, ExpenseCategory, TaxAmount, TotalAmount";
-            newClientValues = "VALUES ('" + date + "', '" + description + "', '" + expenseCategory + "', " + totalTax + "," + totalAmount;
+            newClientValues = "VALUES ('" + date + "', '" + description + "', '" + expenseCategory + "', " + totalTax + "," +
+                              totalAmount;
 
             //Checks if the invoice ID entered is valid
             if (invoiceID > 0)
@@ -557,15 +623,8 @@ namespace Moneta
             //Executes the command with the query and connection
             MySqlCommand newExpense = new MySqlCommand(sqlQuery, data.connection);
             newExpense.ExecuteNonQuery();
-
-            //Re-fills the expense table and images column with the new data and informs user of successful entry
-            frm.expensesTableAdapter.Fill(frm.expensesDataSet.expenses);
-            updateImagesColumn();
-            MessageBox.Show("Expense successfully added to the database.");
         }
 
-        //Pre: The string value of the image currently (for backup purposes)
-        //Post: The image is copied over to the application folder, and the path is saved
         //Description: Opens the file dialog to get the image. Saves it in the expenses directory, with the file path. 
         public string fetchImage(string value)
         {
@@ -596,7 +655,7 @@ namespace Moneta
                 File.Copy(sourcePath, data.databasePath + "\\Expenses\\" + random + Path.GetFileName(sourcePath));
                 return random + Path.GetFileName(sourcePath);
             }
-                //If extraordinary exception occurs (File too large in size) lets the user know.
+            //If extraordinary exception occurs (File too large in size) lets the user know.
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message + " Please try another image.");
@@ -629,7 +688,11 @@ namespace Moneta
                 Debug.WriteLine(ex.Message);
             }
 
-            //Attempts to update the table data based on dgv input
+            updateDataTable();
+        }
+
+        private void updateDataTable()
+        {
             try
             {
                 //Ends the binding and updates the table
