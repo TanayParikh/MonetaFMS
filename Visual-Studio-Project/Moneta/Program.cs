@@ -22,6 +22,7 @@ namespace Moneta
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
+        // ReSharper disable once InconsistentNaming
         private static void Main()
         {
             Application.EnableVisualStyles();

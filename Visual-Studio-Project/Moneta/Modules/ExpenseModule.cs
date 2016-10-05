@@ -9,12 +9,11 @@
 
 using System;
 using System.Data;
-using System.Windows.Forms;
 using System.Diagnostics;
-
-//Libraries used for sql database access and file IO
-using MySql.Data.MySqlClient;
 using System.IO;
+using System.Linq;
+using System.Windows.Forms;
+using MySql.Data.MySqlClient;
 
 namespace Moneta
 {
@@ -26,17 +25,25 @@ namespace Moneta
         
         //Stores the dgv's previous value's and position
         private string oldCellValue = "";
-        private int prevRow = 0;
-        private int prevCol = 0;
+        private int prevRow;
+        private int prevCol;
 
         //Tracks the amount of time passed for the timing sub-module
-        private int ticks = 0;
-        private int numMinutes = 0;
-        private int numHours = 0;
+        private int ticks;
+        private int numMinutes;
+        private int numHours;
 
         //Constants to track time intervals
         private const double TIME_MULTIPLE = 60;
         private const double SECONDS_IN_HOUR = 3600;
+
+        private readonly string[] expenseCategories = { "Advertising", "Insurance", "Interest/bank charges", 
+                                                         "Office expenses", "Office maintenance", "Legal fees and related expenses", 
+                                                         "Accounting and other professional fees", "Management and admin fees", 
+                                                         "Maintenance and repair", "Salaries", "Wages", "Benefits", "Property taxes", 
+                                                         "Travel", "Utilities", "Cost of goods sold", "Motor vehicle expenses", 
+                                                         "Lodging", "Parking fees", "Other misc. supplies", 
+                                                         "Union professional and other similar dues" };
 
         //Class constructor with the form and shared data parameters
         public ExpenseModule(FrmMain frm, SharedData data)
@@ -55,10 +62,12 @@ namespace Moneta
             frm.dgvExpenses.Columns[5].Width = 250;
 
             //Sets up the images column. Makes it read only. This column helps view/add receipt images.
-            DataGridViewTextBoxColumn imageColumn = new DataGridViewTextBoxColumn();
-            imageColumn.HeaderText = "Original Document";
-            imageColumn.Name = "Original";
-            imageColumn.ReadOnly = true;
+            DataGridViewTextBoxColumn imageColumn = new DataGridViewTextBoxColumn
+            {
+                HeaderText = "Original Document",
+                Name = "Original",
+                ReadOnly = true
+            };
             frm.dgvExpenses.Columns.Add(imageColumn);
         }
 
@@ -83,7 +92,7 @@ namespace Moneta
                 if (frm.dgvExpenses.CurrentCell.ColumnIndex == 5)
                 {
                     //Sets the tooltip for the text box, as being the expense categories, seperated by new lines
-                    expenseCategoriesTip.SetToolTip(autoText, "Advertising\nInsurance\nInterest/bank charges\nOffice expenses\nOffice maintenance\nLegal fees and related expenses\nAccounting and other professional fees\nManagement and admin fees\nMaintenance and repair\nSalaries\nWages\nBenefits\nProperty taxes\nTravel\nUtilities\nCost of goods sold\nMotor vehicle expenses\nLodging\nParking fees\nOther misc. supplies\nUnion professional and other similar dues");
+                    expenseCategoriesTip.SetToolTip(autoText, string.Join(Environment.NewLine, expenseCategories));
 
                     //If it isn't, adds autocomplete for the text box.
                     autoText.AutoCompleteMode = AutoCompleteMode.Suggest;
@@ -121,53 +130,17 @@ namespace Moneta
             //Executes if the fields are to be added to the collection.
             if (add)
             {
-                //Adds the expense categories
-                col.Add("Advertising");
-                col.Add("Insurance");
-                col.Add("Interest/bank charges");
-                col.Add("Office expenses");
-                col.Add("Office maintenance");
-                col.Add("Legal fees and related expenses");
-                col.Add("Accounting and other professional fees");
-                col.Add("Management and admin fees");
-                col.Add("Maintenance and repair");
-                col.Add("Salaries");
-                col.Add("Wages");
-                col.Add("Benefits");
-                col.Add("Property taxes");
-                col.Add("Travel");
-                col.Add("Utilities");
-                col.Add("Cost of goods sold");
-                col.Add("Motor vehicle expenses");
-                col.Add("Lodging");
-                col.Add("Parking fees");
-                col.Add("Other misc. supplies");
-                col.Add("Union professional and other similar dues");
+                foreach (string category in expenseCategories)
+                {
+                    col.Add(category);
+                }
             }
             else
             {
-                //Removes the expense categories
-                col.Remove("Advertising");
-                col.Remove("Insurance");
-                col.Remove("Interest/bank charges");
-                col.Remove("Office expenses");
-                col.Remove("Office maintenance");
-                col.Remove("Legal fees and related expenses");
-                col.Remove("Accounting and other professional fees");
-                col.Remove("Management and admin fees");
-                col.Remove("Maintenance and repair");
-                col.Remove("Salaries");
-                col.Remove("Wages");
-                col.Remove("Benefits");
-                col.Remove("Property taxes");
-                col.Remove("Travel");
-                col.Remove("Utilities");
-                col.Remove("Cost of goods sold");
-                col.Remove("Motor vehicle expenses");
-                col.Remove("Lodging");
-                col.Remove("Parking fees");
-                col.Remove("Other misc. supplies");
-                col.Remove("Union professional and other similar dues");
+                foreach (string category in expenseCategories)
+                {
+                    col.Remove(category);
+                }
             }
         }        
 
@@ -278,13 +251,16 @@ namespace Moneta
                     + "', '%m/%d/%Y'),";
 
                 //Checks to see if the invoice ID is greater than 0, and if so, if it exists in the invoices table.
-                if (frm.numExpenseTimeInvoiceID.Value > 0 && data.executeSQLQuery("SELECT COUNT(1) FROM invoices WHERE InvoiceID = " + frm.numExpenseTimeInvoiceID.Value, "If you'd like to associate an invoice. Please enter in a valid invoice ID"))
+                if (frm.numExpenseTimeInvoiceID.Value > 0 && 
+                    data.executeSQLQuery("SELECT COUNT(1) FROM invoices WHERE InvoiceID = " + 
+                    frm.numExpenseTimeInvoiceID.Value, 
+                    "If you'd like to associate an invoice. Please enter in a valid invoice ID"))
                 {
                     //If not puts a default description of working on project
                     values += "'Work on Project', ";
 
                     //If so adds the invoice header and value into the sql statement
-                    values += Convert.ToInt32(frm.numExpenseTimeInvoiceID.Value).ToString() + ", ";
+                    values += Convert.ToInt32(frm.numExpenseTimeInvoiceID.Value) + ", ";
                     sql += "Invoices_InvoiceID,";
                 }
                 else
@@ -295,7 +271,7 @@ namespace Moneta
 
                 //Adds the ending of the sql statement with the remaining fields. 
                 sql += "ExpenseCategory, TotalAmount, TaxAmount)";
-                values += "'Wages', " + Math.Round(expense, 2).ToString() + "," + 0 + ") ";
+                values += "'Wages', " + Math.Round(expense, 2) + "," + 0 + ") ";
 
                 //Executes sql command with sql heading and values
                 data.executeSQLQuery(sql + values, "Invalid Invoice ID. Please enter a valid invoice ID.");
@@ -347,13 +323,13 @@ namespace Moneta
                 if (frm.numDistanceInvoiceID.Value > 0 && data.executeSQLQuery("SELECT COUNT(1) FROM invoices WHERE InvoiceID = " + frm.numDistanceInvoiceID.Value, "If you'd like to associate an invoice. Please enter in a valid invoice ID"))
                 {
                     //If so adds the invoice header and value into the sql statement
-                    values += Convert.ToInt32(frm.numDistanceInvoiceID.Value).ToString() + ", ";
+                    values += Convert.ToInt32(frm.numDistanceInvoiceID.Value) + ", ";
                     sql += "Invoices_InvoiceID,";
                 }
 
                 //Adds the ending of the sql statement with the remaining fields. Calculates cost using cost/km specified in settings
                 sql += "ExpenseCategory, TotalAmount, TaxAmount)";
-                values += "'Motor Vehicle Expenses', " + Math.Round((distanceTravelled * Convert.ToDouble(data.generalSettings[SharedData.COST_PER_KM])), 2).ToString() + "," + 0 + ") ";
+                values += "'Motor Vehicle Expenses', " + Math.Round((distanceTravelled * Convert.ToDouble(data.generalSettings[SharedData.COST_PER_KM])), 2) + "," + 0 + ") ";
 
                 //Executes sql command with sql heading and values
                 data.executeSQLQuery(sql + values, "Invalid Invoice ID. Please enter a valid invoice ID.");
@@ -403,12 +379,12 @@ namespace Moneta
         //Description: Checks if the cell click occured in the 8th (image view) column. If so based on whether an image is already associated, gets an image/opens up the existing image.
         private void addRemoveImage(DataGridViewCellEventArgs e)
         {
-            //Ensures it is the 8th image view column, and the cell isn't null
-            if (e.ColumnIndex == 8 && frm.dgvExpenses.CurrentCell.Value != null)
+            if (e.ColumnIndex != 8 || frm.dgvExpenses.CurrentCell.Value == null) return;
+
+            //Checks to see if the field is currently set to add (Means no image refrence has been associated with the expense)
+            switch (frm.dgvExpenses.CurrentCell.Value.ToString())
             {
-                //Checks to see if the field is currently set to add (Means no image refrence has been associated with the expense)
-                if (frm.dgvExpenses.CurrentCell.Value.ToString() == "Add")
-                {
+                case "Add":
                     //Opens the file dialog and waits for the user to select ok
                     if (frm.ofdExpenses.ShowDialog() == DialogResult.OK)
                     {
@@ -416,16 +392,16 @@ namespace Moneta
                         string sourcePath = frm.ofdExpenses.FileName;
 
                         //Checks if the expense directory exists, if not creates it
-                        if (!System.IO.Directory.Exists(data.databasePath + "\\Expenses"))
+                        if (!Directory.Exists(data.databasePath + "\\Expenses"))
                         {
-                            System.IO.Directory.CreateDirectory(data.databasePath + "\\Expenses");
+                            Directory.CreateDirectory(data.databasePath + "\\Expenses");
                         }
 
                         //Attempts to copy over the file into the directory
                         try
                         {
                             //Copies the file over to the directory and associates the selected image with the expense by passing a refrence link
-                            System.IO.File.Copy(sourcePath, data.databasePath + "\\Expenses\\" + Path.GetFileName(sourcePath));
+                            File.Copy(sourcePath, data.databasePath + "\\Expenses\\" + Path.GetFileName(sourcePath));
                             frm.dgvExpenses.Rows[e.RowIndex].Cells[3].Value = Path.GetFileName(sourcePath);
                         }
                         catch (IOException)
@@ -434,7 +410,7 @@ namespace Moneta
                             int random = data.generator.Next(1, 99999);
 
                             //Copies the file over to the directory and associates the selected image with the expense by passing a refrence link
-                            System.IO.File.Copy(sourcePath, data.databasePath + "\\Expenses\\" + random + Path.GetFileName(sourcePath));
+                            File.Copy(sourcePath, data.databasePath + "\\Expenses\\" + random + Path.GetFileName(sourcePath));
                             frm.dgvExpenses.Rows[e.RowIndex].Cells[3].Value = random + Path.GetFileName(sourcePath);
                         }
 
@@ -443,9 +419,9 @@ namespace Moneta
                         {
                             //Creates new sql query to update image reference
                             string sql = "UPDATE expenses SET expenses.ImageReference = '"
-                                        + frm.dgvExpenses.Rows[e.RowIndex].Cells[3].Value
-                                        + "' WHERE expenses.ExpenseID = "
-                                        + frm.dgvExpenses.Rows[e.RowIndex].Cells[0].Value + ";";
+                                         + frm.dgvExpenses.Rows[e.RowIndex].Cells[3].Value
+                                         + "' WHERE expenses.ExpenseID = "
+                                         + frm.dgvExpenses.Rows[e.RowIndex].Cells[0].Value + ";";
 
                             //Executes the query and supplies an error message
                             data.executeSQLQuery(sql, " File could not be copied. Please move to another location and try again.");
@@ -456,7 +432,7 @@ namespace Moneta
                             data.tempByPass = true;
 
                         }
-                        //Catches any exceptions and informs the user
+                            //Catches any exceptions and informs the user
                         catch (Exception ex)
                         {
                             MessageBox.Show(ex.Message);
@@ -465,14 +441,12 @@ namespace Moneta
                         //Sets the value of the current cell to view
                         frm.dgvExpenses.CurrentCell.Value = "View";
                     }
-                }
-                //Checks if the current cell is set to view. If so, opens up the file
-                else if (frm.dgvExpenses.CurrentCell.Value.ToString() == "View")
-                {
+                    break;
+                case "View":
                     //Attempts to open up associated file for the expense
                     try
                     {
-                        System.Diagnostics.Process.Start(data.databasePath + "\\Expenses\\" + frm.dgvExpenses.Rows[e.RowIndex].Cells[3].Value.ToString());
+                        Process.Start(data.databasePath + "\\Expenses\\" + frm.dgvExpenses.Rows[e.RowIndex].Cells[3].Value);
                     }
                     catch
                     {
@@ -485,7 +459,7 @@ namespace Moneta
                         {
                             //Creates new sql query to remove image reference
                             string sql = "UPDATE expenses SET expenses.ImageReference = NULL WHERE expenses.ExpenseID = "
-                                        + frm.dgvExpenses.Rows[e.RowIndex].Cells[0].Value + ";";
+                                         + frm.dgvExpenses.Rows[e.RowIndex].Cells[0].Value + ";";
 
                             //Executes the query and supplies an empty error message
                             data.executeSQLQuery(sql, "");
@@ -496,13 +470,12 @@ namespace Moneta
                             data.tempByPass = true;
 
                         }
-                        //Catches any exceptions and informs the user
+                            //Catches any exceptions and informs the user
                         catch (Exception ex)
                         {
                             MessageBox.Show(ex.Message);
                         }
                     }
-                }
             }
         }
 
@@ -533,67 +506,62 @@ namespace Moneta
                 && verifyExpenseCategorization(expenseCategory))
             {
                 //Checks if no invoice ID is entered (0) or if one is entered, it is valid (Through an sql query of the invoices table.
-                if (invoiceID == 0 || data.executeSQLQuery("SELECT COUNT(1) FROM invoices WHERE InvoiceID = " + invoiceID, "If you'd like to associate an invoice. Please enter in a valid invoice ID"))
+                if (invoiceID == 0 || 
+                    data.executeSQLQuery("SELECT COUNT(1) FROM invoices WHERE InvoiceID = " 
+                    + invoiceID, "If you'd like to associate an invoice. Please enter in a valid invoice ID"))
                 {
                     //If so, validates date
                     isDataValid = true;
-                }
-                else
-                {
-                    //If not, indicates invalid data
-                    isDataValid = false;
                 }
                 
             }
             else
             {
-                isDataValid = false;
                 MessageBox.Show("Please ensure that you have filled in the mandatory fields. (Date, description, expense category, total amount, tax amount.)");
             }
 
 
             //Executes datatable update if data is valid
-            if (isDataValid)
+            if (!isDataValid) return;
+
+            //Checks if connection is closed. If so opens it up
+            if (data.connection.State == ConnectionState.Closed)
             {
-                //Checks if connection is closed. If so opens it up
-                if (data.connection.State == ConnectionState.Closed)
-                {
-                    data.connection.Open();
-                }
-
-                //Creates two sql strings to help in query creation
-                //Fills first with names of values being modified, and second with values themselves
-                newClientSql = "INSERT INTO expenses (Date, Description, ExpenseCategory, TaxAmount, TotalAmount";
-                newClientValues = "VALUES ('" + date + "', '" + description + "', '" + expenseCategory + "', " + totalTax + "," + totalAmount;
-
-                //Checks if the invoice ID entered is valid
-                if (invoiceID > 0)
-                {
-                    //If not indicates the company is being added, and then adds the company name
-                    newClientSql += ", Invoices_InvoiceID";
-                    newClientValues += ", " + invoiceID;
-                }
-
-                //Checks if the address textbox is null or empty
-                if (frm.btnExpenseAddImage.Text != "Add Image")
-                {
-                    //If not indicates the address is being added, and then adds the address value
-                    newClientSql += ", ImageReference";
-                    newClientValues += ", '" + frm.btnExpenseAddImage.Text + "'";
-                }
-
-                //Combines the name query with the value query, and includes closing brackets
-                sqlQuery = newClientSql + ") " + newClientValues + ");";
-
-                //Executes the command with the query and connection
-                MySqlCommand newExpense = new MySqlCommand(sqlQuery, data.connection);
-                newExpense.ExecuteNonQuery();
-
-                //Re-fills the expense table and images column with the new data and informs user of successful entry
-                frm.expensesTableAdapter.Fill(frm.expensesDataSet.expenses);
-                updateImagesColumn();
-                MessageBox.Show("Expense successfully added to the database.");
+                data.connection.Open();
             }
+
+            //Creates two sql strings to help in query creation
+            //Fills first with names of values being modified, and second with values themselves
+            newClientSql = "INSERT INTO expenses (Date, Description, ExpenseCategory, TaxAmount, TotalAmount";
+            newClientValues = "VALUES ('" + date + "', '" + description + "', '" + expenseCategory + "', " + totalTax + "," + totalAmount;
+
+            //Checks if the invoice ID entered is valid
+            if (invoiceID > 0)
+            {
+                //If not indicates the company is being added, and then adds the company name
+                newClientSql += ", Invoices_InvoiceID";
+                newClientValues += ", " + invoiceID;
+            }
+
+            //Checks if the address textbox is null or empty
+            if (frm.btnExpenseAddImage.Text != "Add Image")
+            {
+                //If not indicates the address is being added, and then adds the address value
+                newClientSql += ", ImageReference";
+                newClientValues += ", '" + frm.btnExpenseAddImage.Text + "'";
+            }
+
+            //Combines the name query with the value query, and includes closing brackets
+            sqlQuery = newClientSql + ") " + newClientValues + ");";
+
+            //Executes the command with the query and connection
+            MySqlCommand newExpense = new MySqlCommand(sqlQuery, data.connection);
+            newExpense.ExecuteNonQuery();
+
+            //Re-fills the expense table and images column with the new data and informs user of successful entry
+            frm.expensesTableAdapter.Fill(frm.expensesDataSet.expenses);
+            updateImagesColumn();
+            MessageBox.Show("Expense successfully added to the database.");
         }
 
         //Pre: The string value of the image currently (for backup purposes)
@@ -601,39 +569,37 @@ namespace Moneta
         //Description: Opens the file dialog to get the image. Saves it in the expenses directory, with the file path. 
         public string fetchImage(string value)
         {
-            //Executes if user selects an image
-            if (frm.ofdExpenses.ShowDialog() == DialogResult.OK)
+            if (frm.ofdExpenses.ShowDialog() != DialogResult.OK) return value;
+
+            //Sets the source path of the image to the one that the user selected
+            string sourcePath = frm.ofdExpenses.FileName;
+
+            //Checks if expenses directory exists, if not creates it
+            if (!Directory.Exists(data.databasePath + "\\Expenses"))
             {
-                //Sets the source path of the image to the one that the user selected
-                string sourcePath = frm.ofdExpenses.FileName;
+                Directory.CreateDirectory(data.databasePath + "\\Expenses");
+            }
 
-                //Checks if expenses directory exists, if not creates it
-                if (!System.IO.Directory.Exists(data.databasePath + "\\Expenses"))
-                {
-                    System.IO.Directory.CreateDirectory(data.databasePath + "\\Expenses");
-                }
-
-                //Attempts to copy over the image into the Expenses directory and return the image identifier
-                try
-                {
-                    System.IO.File.Copy(sourcePath, data.databasePath + "\\Expenses\\" + Path.GetFileName(sourcePath));
-                    return Path.GetFileName(sourcePath);
-                }
+            //Attempts to copy over the image into the Expenses directory and return the image identifier
+            try
+            {
+                File.Copy(sourcePath, data.databasePath + "\\Expenses\\" + Path.GetFileName(sourcePath));
+                return Path.GetFileName(sourcePath);
+            }
                 //Otherwise if the file can't be copied, tries copying again but with a random number attached to the end
-                catch (IOException)
-                {
-                    //Creates random num
-                    int random = data.generator.Next(1, 9999);
+            catch (IOException)
+            {
+                //Creates random num
+                int random = data.generator.Next(1, 9999);
 
-                    //Saves the file path and returns to user
-                    System.IO.File.Copy(sourcePath, data.databasePath + "\\Expenses\\" + random + Path.GetFileName(sourcePath));
-                    return random + Path.GetFileName(sourcePath);
-                }
+                //Saves the file path and returns to user
+                File.Copy(sourcePath, data.databasePath + "\\Expenses\\" + random + Path.GetFileName(sourcePath));
+                return random + Path.GetFileName(sourcePath);
+            }
                 //If extraordinary exception occurs (File too large in size) lets the user know.
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message + " Please try another image.");
-                }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message + " Please try another image.");
             }
 
             //Returns the backup value if new image path couldn't be found
@@ -695,23 +661,8 @@ namespace Moneta
         //Description: Runs through all the expense categories. If the input is equal to any one, returns valid categorization.
         private bool verifyExpenseCategorization(string newValue)
         {
-            //Establishes default output, invalid categorization
-            bool valueVerified = false;
-
-            //Runs for all the categories
-            for (int i = 0; i < data.expenseCategories.Length; ++i)
-            {
-                //Checks to see if the value is equal to that expense category
-                if (newValue == data.expenseCategories[i])
-                {
-                    //If so, indicates valid category and stops searching other entries by exiting loop
-                    valueVerified = true;
-                    break;
-                }
-            }
-
             //Returns whether the value has been verified as an expense category.
-            return valueVerified;
+            return data.expenseCategories.Any(t => newValue == t);
         }
 
         //Indicates a cell has been entered in expenses dgv. (Event handler)
