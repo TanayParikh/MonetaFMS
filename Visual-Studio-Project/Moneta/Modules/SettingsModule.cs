@@ -30,6 +30,8 @@ namespace Moneta
         private SharedData data;
         private FrmMain frm;
 
+        private static string DELIMITER = " !@BREAK@!~ ";
+
         //Stores the path to the settings file
         private string filePath;
 
@@ -100,9 +102,9 @@ namespace Moneta
                     StreamReader inFile = new StreamReader(filePath);
 
                     //Reads in each line, settings seperated by the " !@BREAK@!~ " delimiter
-                    data.generalSettings = inFile.ReadLine().Split(new string[] { " !@BREAK@!~ " }, StringSplitOptions.None);
-                    data.emailSettings = inFile.ReadLine().Split(new string[] { " !@BREAK@!~ " }, StringSplitOptions.None);
-                    data.databaseSettings = inFile.ReadLine().Split(new string[] { " !@BREAK@!~ " }, StringSplitOptions.None);
+                    data.generalSettings = inFile.ReadLine().Split(new string[] { DELIMITER }, StringSplitOptions.None);
+                    data.emailSettings = inFile.ReadLine().Split(new string[] { DELIMITER }, StringSplitOptions.None);
+                    data.databaseSettings = inFile.ReadLine().Split(new string[] { DELIMITER }, StringSplitOptions.None);
 
                     //Sets the database build settings, which were read in from the file.
                     data.builder.Server = data.databaseSettings[SharedData.DATABASE_SERVER];
@@ -293,21 +295,7 @@ namespace Moneta
                             break;
 
                         case 5:
-                            //Confirms numerical entry by trying to parse it
-                            double isCostValid;
-                            double.TryParse(value, out isCostValid);
-
-                            //If parsing succeeds, updates the setting with the new value
-                            if (isCostValid > 0)
-                            {
-                                data.generalSettings[SharedData.COST_PER_KM] = value;
-                            }
-                            else
-                            {
-                                //Otherwise, informs user.
-                                MessageBox.Show("Please enter a valid cost per km.");
-                            }
-
+                            validateKMCost(value);
                             break;
 
                         case 8:
@@ -315,40 +303,11 @@ namespace Moneta
                             break;
 
                         case 9:
-                            //Confirms numerical entry by trying to parse it
-                            int isPortValid;
-                            int.TryParse(value, out isPortValid);
-
-                            //If parsing succeeds, updates the setting with the new value
-                            if (isPortValid > 0)
-                            {
-                                data.emailSettings[SharedData.SMTP_PORT] = value;
-                            }
-                            else
-                            {
-                                //Otherwise informs user
-                                MessageBox.Show("Please enter a valid SMTP port.");
-                            }
-
+                            validateSMTPPort(value);
                             break;
 
                         case 10:
-                            //Attempts to parse email address
-                            try
-                            {
-                                //Tries formating as emailaddress - (a form of parse)
-                                System.Net.Mail.MailAddress addr = new System.Net.Mail.MailAddress(value);
-
-                                //If successful, stores the new email user ID
-                                data.emailSettings[SharedData.SMTP_USER_ID] = value;
-                            }
-                            catch
-                            {
-                                //If parsing fails informs user, resets the dgv value to that of before
-                                MessageBox.Show("Please enter a valid email address.");
-                                value = data.emailSettings[SharedData.SMTP_USER_ID];
-                            }
-                            
+                            parseEmailAddress(value);
                             break;
 
                         case 11:
@@ -357,75 +316,46 @@ namespace Moneta
 
                         case 12:
                             //Checks if the value entered is either true or false for requiring ssl
-                            if (value.ToLower() == "true" || value.ToLower() == "false")
-                            {
-                                data.emailSettings[SharedData.SMTP_REQUIRESSL] = value;
-                            }
-                            else
-                            {
-                                //Otherwise resets value and informs user, as value is invalid
-                                value = data.emailSettings[SharedData.SMTP_REQUIRESSL];
-                                MessageBox.Show("Require SSL can either be set to true or false. Please update value.");
-                            }
-                            
+                            validateSMTPSSL(value);
                             break;
 
                         case 15:
-                            if (data.databaseSettings[SharedData.DATABASE_SERVER] != value)
-                            {
-                                data.databaseSettings[SharedData.DATABASE_SERVER] = value;
-                                databaseSettingsChanged = true;
-                            }
-
+                            validateDatabaseSetting(SharedData.DATABASE_SERVER, value, ref databaseSettingsChanged);
                             break;
 
                         case 16:
-                            if (data.databaseSettings[SharedData.DATABASE_USER_ID] != value)
-                            {
-                                data.databaseSettings[SharedData.DATABASE_USER_ID] = value;
-                                databaseSettingsChanged = true;
-                            }
+                            validateDatabaseSetting(SharedData.DATABASE_USER_ID, value, ref databaseSettingsChanged);
                             break;
 
                         case 17:
-                            if (data.databaseSettings[SharedData.DATABASE_PASSWORD] != value)
-                            {
-                                data.databaseSettings[SharedData.DATABASE_PASSWORD] = value;
-                                databaseSettingsChanged = true;
-                            }
-
+                            validateDatabaseSetting(SharedData.DATABASE_PASSWORD, value, ref databaseSettingsChanged);
                             break;
 
                         case 18:
-                            if (data.databaseSettings[SharedData.DATABASE_NAME] != value)
-                            {
-                                data.databaseSettings[SharedData.DATABASE_NAME] = value;
-                                databaseSettingsChanged = true;
-                            }
-
+                            validateDatabaseSetting(SharedData.DATABASE_NAME, value, ref databaseSettingsChanged);
                             break;
                     }
                 }
             }
 
-            //Creates the general settings output line, with the " !@BREAK@!~ " delimiter
-            generalData = data.generalSettings[SharedData.COMPANY_NAME] + " !@BREAK@!~ "
-                + data.generalSettings[SharedData.COMPANY_ADDRESS] + " !@BREAK@!~ "
-                + data.generalSettings[SharedData.COMPANY_PHONE_NUMBER] + " !@BREAK@!~ "
-                + data.generalSettings[SharedData.COMPANY_LOGO_PATH] + " !@BREAK@!~ "
+            //Creates the general settings output line
+            generalData = data.generalSettings[SharedData.COMPANY_NAME] + DELIMITER
+                + data.generalSettings[SharedData.COMPANY_ADDRESS] + DELIMITER
+                + data.generalSettings[SharedData.COMPANY_PHONE_NUMBER] + DELIMITER
+                + data.generalSettings[SharedData.COMPANY_LOGO_PATH] + DELIMITER
                 + data.generalSettings[SharedData.COST_PER_KM];
 
-            //Creates the email settings output line, with the " !@BREAK@!~ " delimiter
-            emailData = data.emailSettings[SharedData.SMTP_ADDRESS] + " !@BREAK@!~ "
-                + data.emailSettings[SharedData.SMTP_PORT] + " !@BREAK@!~ "
-                + data.emailSettings[SharedData.SMTP_USER_ID] + " !@BREAK@!~ "
-                + data.emailSettings[SharedData.SMTP_PASSWORD] + " !@BREAK@!~ "
+            //Creates the email settings output line
+            emailData = data.emailSettings[SharedData.SMTP_ADDRESS] + DELIMITER
+                + data.emailSettings[SharedData.SMTP_PORT] + DELIMITER
+                + data.emailSettings[SharedData.SMTP_USER_ID] + DELIMITER
+                + data.emailSettings[SharedData.SMTP_PASSWORD] + DELIMITER
                 + data.emailSettings[SharedData.SMTP_REQUIRESSL];
 
-            //Creates the database settings output line, with the " !@BREAK@!~ " delimiter
-            databaseData = data.databaseSettings[SharedData.DATABASE_SERVER] + " !@BREAK@!~ "
-                + data.databaseSettings[SharedData.DATABASE_USER_ID] + " !@BREAK@!~ "
-                + data.databaseSettings[SharedData.DATABASE_PASSWORD] + " !@BREAK@!~ "
+            //Creates the database settings output line
+            databaseData = data.databaseSettings[SharedData.DATABASE_SERVER] + DELIMITER
+                + data.databaseSettings[SharedData.DATABASE_USER_ID] + DELIMITER
+                + data.databaseSettings[SharedData.DATABASE_PASSWORD] + DELIMITER
                 + data.databaseSettings[SharedData.DATABASE_NAME];
 
             //Writes the three lines from above into the file
@@ -445,6 +375,81 @@ namespace Moneta
             else
             {
                 MessageBox.Show("Settings have been saved.");
+            }
+        }
+
+        private void validateDatabaseSetting(int index, string value, ref bool databaseSettingsChanged)
+        {
+            if (data.databaseSettings[index] != value)
+            {
+                data.databaseSettings[index] = value;
+                databaseSettingsChanged = true;
+            }
+        }
+
+        private void validateSMTPSSL(string value)
+        {
+            if (value.ToLower() == "true" || value.ToLower() == "false")
+            {
+                data.emailSettings[SharedData.SMTP_REQUIRESSL] = value;
+            }
+            else
+            {
+                //Otherwise resets value and informs user, as value is invalid
+                value = data.emailSettings[SharedData.SMTP_REQUIRESSL];
+                MessageBox.Show("Require SSL can either be set to true or false. Please update value.");
+            }
+        }
+
+        private void parseEmailAddress(string value)
+        {
+            try
+            {
+                //Tries formating as emailaddress - (a form of parse)
+                System.Net.Mail.MailAddress addr = new System.Net.Mail.MailAddress(value);
+
+                //If successful, stores the new email user ID
+                data.emailSettings[SharedData.SMTP_USER_ID] = value;
+            }
+            catch
+            {
+                //If parsing fails informs user, resets the dgv value to that of before
+                MessageBox.Show("Please enter a valid email address.");
+                value = data.emailSettings[SharedData.SMTP_USER_ID];
+            }
+        }
+
+        private void validateSMTPPort(string value)
+        {
+            int isPortValid;
+            int.TryParse(value, out isPortValid);
+
+            //If parsing succeeds, updates the setting with the new value
+            if (isPortValid > 0)
+            {
+                data.emailSettings[SharedData.SMTP_PORT] = value;
+            }
+            else
+            {
+                //Otherwise informs user
+                MessageBox.Show("Please enter a valid SMTP port.");
+            }
+        }
+
+        private void validateKMCost(string value)
+        {
+            double validCost;
+            double.TryParse(value, out validCost);
+
+            //If parsing succeeds, updates the setting with the new value
+            if (validCost > 0)
+            {
+                data.generalSettings[SharedData.COST_PER_KM] = value;
+            }
+            else
+            {
+                //Otherwise, informs user.
+                MessageBox.Show("Please enter a valid cost per km.");
             }
         }
 

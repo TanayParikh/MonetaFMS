@@ -43,7 +43,8 @@ namespace Moneta
                                                          "Maintenance and repair", "Salaries", "Wages", "Benefits", "Property taxes", 
                                                          "Travel", "Utilities", "Cost of goods sold", "Motor vehicle expenses", 
                                                          "Lodging", "Parking fees", "Other misc. supplies", 
-                                                         "Union professional and other similar dues" };
+                                                         "Union professional and other similar dues", "Telephone", 
+                                                         "Internet and Communication" };
 
         //Class constructor with the form and shared data parameters
         public ExpenseModule(FrmMain frm, SharedData data)
