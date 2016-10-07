@@ -52,7 +52,7 @@ namespace Moneta
         private int numMonths;
 
         //Stores the COGS computed. Used for multiple calculations.
-        private double sumCogs = 0;
+        private double sumCogs;
 
         //Arrays to store the stat names and values
         private string[] statHeadings;
@@ -164,18 +164,7 @@ namespace Moneta
         //Description: Calls for the calculation of each business stat, and then displays each one with heading in the dgv. 
         private void compileBusinessStats(string startDate, string endDate)
         {
-            //Calls for the calculation of each business stat
-            stats[EXPENSES] = calculateExpenses(startDate, endDate);
-            stats[REVENUE] = calculateRevenue(startDate, endDate);
-            stats[PROFIT] = calculateProfit();
-            stats[ACCOUNTS_RECEIVABLE] = calculateAccountsReceivable(startDate, endDate);
-            stats[GROSS_MARGIN] = calculateGrossMargin(startDate, endDate);
-            stats[COGS] = sumCogs;
-            stats[TAXES_COLLECTED] = calculateTaxesCollected(startDate, endDate);
-            stats[TAXES_PAID] = calculateTaxesPaid(startDate, endDate);
-
-            //Determines the month timespan between the starting and ending dates. Will be used later when printing. 
-            numMonths = frm.dtpStatsEnd.Value.Month - frm.dtpStatsStart.Value.Month + (frm.dtpStatsEnd.Value.Year - frm.dtpStatsStart.Value.Year) * 12;
+            computeStats(startDate, endDate);
 
             //Runs for all the stats
             for (int i = 0; i < statHeadings.Count(); ++i)
@@ -193,9 +182,21 @@ namespace Moneta
                 else
                 {
                     //Formats gross margin as %
-                    frm.dgvBusinessStats.Rows[i].Cells[1].Value = stats[i].ToString() + "%";
+                    frm.dgvBusinessStats.Rows[i].Cells[1].Value = stats[i] + "%";
                 }
             }
+        }
+
+        private void computeStats(string startDate, string endDate)
+        {
+            stats[EXPENSES] = calculateExpenses(startDate, endDate);
+            stats[REVENUE] = calculateRevenue(startDate, endDate);
+            stats[PROFIT] = calculateProfit();
+            stats[ACCOUNTS_RECEIVABLE] = calculateAccountsReceivable(startDate, endDate);
+            stats[GROSS_MARGIN] = calculateGrossMargin(startDate, endDate);
+            stats[COGS] = sumCogs;
+            stats[TAXES_COLLECTED] = calculateTaxesCollected(startDate, endDate);
+            stats[TAXES_PAID] = calculateTaxesPaid(startDate, endDate);
         }
 
         //Pre: The start and end dates of the calculation.
@@ -203,17 +204,15 @@ namespace Moneta
         //Description: Calculates the client stats based on dates, and then displays the amount each client has been billed in that timespan. 
         private void compileClientStats(string startDate, string endDate)
         {
-            //Lists storing the invoices and client values found
-            List<string> invoices = new List<string>();
-            List<int> clientID = new List<int>();
-
-            //Sets up the sql command
-            //Gets all the invoice and cliend ids from the invoices table in the given timespan
-            string sql = "SELECT invoices.InvoiceID, Clients_ClientID FROM invoices WHERE invoices.Date >= '"
-                + startDate
-                + "' AND invoices.Date <= '"
-                + endDate
-                + "' AND invoices.Type = 'Invoice' AND invoices.Paid = 'Yes';";
+            string query = "SELECT concat(FirstName, ' ', LastName) AS Name, Company, ClientTotal FROM clients"
+                + " JOIN"
+                + " (SELECT ClientID, SUM(Total) AS ClientTotal FROM"
+                + " (SELECT SUM(Price) AS Total, Invoices_InvoiceID AS InvoiceID, MAX(ClientID) AS ClientID FROM mydb.items AS items"
+                + " JOIN (SELECT Clients_ClientID AS ClientID, InvoiceID FROM invoices WHERE invoices.Date >= @startDate AND invoices.Date <= @endDate) AS invoices"
+                + " ON items.Invoices_InvoiceID = invoices.InvoiceID"
+                + " GROUP BY Invoices_InvoiceID) AS totalInvoiceClient"
+                + " GROUP BY ClientID ORDER BY ClientTotal DESC) AS clientIDTotal" 
+                + " ON clients.ClientID = clientIDTotal.ClientID";
 
             //Checks if the sql connection is open, if not opens it up. 
             if (data.connection.State == ConnectionState.Closed)
@@ -221,79 +220,29 @@ namespace Moneta
                 data.connection.Open();
             }
 
-            //Runs utilizing the sql command created and the connection opened
-            using (MySqlCommand command = new MySqlCommand(sql, data.connection))
+            using (MySqlCommand command = new MySqlCommand(query, data.connection))
             {
+                command.Parameters.AddWithValue("@startDate", startDate);
+                command.Parameters.AddWithValue("@endDate", endDate);
+
                 //Executes the command
                 using (MySqlDataReader reader = command.ExecuteReader())
                 {
                     //Runs for all results
                     while (reader.Read())
                     {
-                        //Stores the invoice and client ids
-                        invoices.Add(reader["InvoiceID"].ToString());
-                        clientID.Add(Convert.ToInt32(reader["Clients_ClientID"].ToString()));
+                        // Adds row with client name and total
+                        int index = frm.dgvClientStats.Rows.Add();
+                        frm.dgvClientStats.Rows[index].Cells[0].Value = (string.IsNullOrEmpty(reader["Company"].ToString())) ? reader["Name"].ToString() : reader["Company"].ToString();
+                        frm.dgvClientStats.Rows[index].Cells[1].Value = String.Format("${0:C}", reader["ClientTotal"].ToString());
                     }
                 }
+
+                data.connection.Close();
             }
 
-            //Closes the sql connection
-            data.connection.Close();
-
-            if (clientID.Count > 0)
-            {
-                //Creates an array storing client totals. Size being the max client ID num + 1 to account for non 0 based index with client ID. 
-                double[] clientTotals = new double[Convert.ToInt32(clientID.Max()) + 1];
-
-                //Runs for all the invoices found
-                for (int i = 0; i < invoices.Count; ++i)
-                {
-                    //Opens the sql connection
-                    data.connection.Open();
-
-                    //Gets the sum of the items contained in that invoice
-                    MySqlCommand command = new MySqlCommand("SELECT SUM(Price) FROM items WHERE Invoices_invoiceID = " + invoices[i], data.connection);
-
-                    //Stores the sum revenue as an object, after executing the command
-                    object sumRevenueO = command.ExecuteScalar();
-
-                    //If the revenue found was not null or empty, adds to the client total
-                    if (!string.IsNullOrEmpty(sumRevenueO.ToString()))
-                    {
-                        //Gets the appropriate client id for the invoice, and adds the invoice total to the client total
-                        clientTotals[Convert.ToInt32(clientID[i])] += Convert.ToDouble(sumRevenueO.ToString());
-                    }
-
-                    //Closes the data connection
-                    data.connection.Close();
-                }
-
-                //Counts the number of valid client entries
-                int validEntry = 0;
-
-                //Runs for all the clients whose totals have been found
-                for (int i = 0; i < clientTotals.Length; ++i)
-                {
-                    //Runs if the client had any purchases
-                    if (clientTotals[i] > 0)
-                    {
-                        //Opens the sql connection
-                        data.connection.Open();
-
-                        //Gets the first name of the client based on the client id
-                        MySqlCommand command = new MySqlCommand("SELECT FirstName FROM clients WHERE ClientID = " + i, data.connection);
-
-                        //Adds a row the the client stats dgv, and inputs the name found above, as well as the client total, formatted as currency.
-                        frm.dgvClientStats.Rows.Add();
-                        frm.dgvClientStats.Rows[validEntry].Cells[0].Value = command.ExecuteScalar().ToString();
-                        frm.dgvClientStats.Rows[validEntry].Cells[1].Value = String.Format("{0:C}", clientTotals[i]);
-
-                        //Increments the number of valid entries and closes the connection
-                        ++validEntry;
-                        data.connection.Close();
-                    }
-                }
-            }
+            // Sets DGV Column header
+            frm.dgvClientStats.Columns[0].HeaderText = "Client";
         }
 
         //Pre: None
