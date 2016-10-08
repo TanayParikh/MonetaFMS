@@ -8,27 +8,22 @@
 ***************************************************************************************************************/
 
 //System libraries
+
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-
-//Library for database access
+using System.Windows.Forms.DataVisualization.Charting;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
 using MySql.Data.MySqlClient;
+//Library for database access
 
 //Libraries used for PDF export
-using System.IO;
-using iTextSharp;
-using iTextSharp.text;
-using iTextSharp.xmp;
-using iTextSharp.text.pdf;
-using System.Collections;
-using System.Windows.Forms.DataVisualization.Charting;
 
 namespace Moneta
 {
@@ -234,7 +229,7 @@ namespace Moneta
                         // Adds row with client name and total
                         int index = frm.dgvClientStats.Rows.Add();
                         frm.dgvClientStats.Rows[index].Cells[0].Value = (string.IsNullOrEmpty(reader["Company"].ToString())) ? reader["Name"].ToString() : reader["Company"].ToString();
-                        frm.dgvClientStats.Rows[index].Cells[1].Value = String.Format("${0:C}", reader["ClientTotal"].ToString());
+                        frm.dgvClientStats.Rows[index].Cells[1].Value = String.Format("${0:C}", reader["ClientTotal"]);
                     }
                 }
 
@@ -368,10 +363,7 @@ namespace Moneta
                     //If not converts to double and adds to revenue
                     return Convert.ToDouble(grandTotal);
                 }
-                else
-                {
-                    return -1;
-                }
+                return -1;
             }
         }
 
@@ -535,7 +527,7 @@ namespace Moneta
             //Runs for all the months plus 1 (Accounts for non-zero based index for months)
             for (int i = 1; i < numMonths + 1; ++i)
             {
-                //Finds date ranges one month apart (i) months away from the current month
+                //Finds date ranges one month apart (index) months away from the current month
                 string endDate = DateTime.Today.AddMonths(-(i - 1)).Date.ToString("d", data.dateCulture);
                 string startDate = DateTime.Today.AddMonths(-i).Date.ToString("d", data.dateCulture);
 
@@ -569,7 +561,7 @@ namespace Moneta
             //Runs for the number of months
             for (int i = 1; i < numMonths + 1; ++i)
             {
-                //Finds date ranges one month apart (i) months away from the current month
+                //Finds date ranges one month apart (index) months away from the current month
                 string endDate = DateTime.Today.AddMonths(-(i - 1)).Date.ToString("d", data.dateCulture);
                 string startDate = DateTime.Today.AddMonths(-i).Date.ToString("d", data.dateCulture);
 
@@ -595,10 +587,10 @@ namespace Moneta
             string endDate = frm.dtpStatsEnd.Value.Date.ToString("d", data.dateCulture);
 
             //Fetches today's date
-            string dateExtension = DateTime.Today.Date.ToString("d MMMM", System.Globalization.CultureInfo.CreateSpecificCulture("en-US"));
+            string dateExtension = DateTime.Today.Date.ToString("d MMMM", CultureInfo.CreateSpecificCulture("en-US"));
 
             //Creates a new PDF doc and writer for a PDF of letter size
-            Document doc = new Document(iTextSharp.text.PageSize.LETTER);
+            Document doc = new Document(PageSize.LETTER);
             PdfWriter writer;
 
             //Checks if the export directory exists, if not creates it.
@@ -617,7 +609,7 @@ namespace Moneta
             catch
             {
                 //Otherwise if an error occurs, such as the file already exists, creates a new file, with a random number extension added on.
-                docPath = data.databasePath + "\\ProfitLossStatements\\" + data.generalSettings[SharedData.COMPANY_NAME] + "_" + dateExtension + "_" + data.generator.Next(1, 9999).ToString() + ".pdf";
+                docPath = data.databasePath + "\\ProfitLossStatements\\" + data.generalSettings[SharedData.COMPANY_NAME] + "_" + dateExtension + "_" + data.generator.Next(1, 9999) + ".pdf";
                 writer = PdfWriter.GetInstance(doc, new FileStream(docPath, FileMode.Create));
             }
 
@@ -627,13 +619,8 @@ namespace Moneta
             //Attempts to source and scale the company logo
             try
             {
-                //Opens the logo and scales to 100px in height
-                iTextSharp.text.Image logo = iTextSharp.text.Image.GetInstance(data.databasePath + "//Images//" + data.generalSettings[SharedData.COMPANY_LOGO_PATH]);
-                float logoHeightMultiple = logo.Height / 100f;
-                logo.ScaleAbsolute(logo.Width / logoHeightMultiple, logo.Height / logoHeightMultiple);
-
                 //Adds to the document
-                doc.Add(logo);
+                doc.Add(sourceAndScaleLogo());
             }
             catch
             {
@@ -641,6 +628,42 @@ namespace Moneta
                 MessageBox.Show("Logo not found at the specified location. Please check the logo location, in the settings tab. Document will print without a logo.");
             }
 
+            addCompanyInfoToDoc(doc, dateExtension, startDate, endDate);
+
+            //Creates a new cell for the PDF tables, and defines its attributes
+            PdfPCell cell = new PdfPCell(new Phrase(""));
+            cell.Colspan = 3;
+            cell.HorizontalAlignment = 1;
+
+            float[] widths = { 10f, 3f };
+
+            // Generates business stats and expense tables
+            generateBusinessStatsTable(widths, cell, doc);
+            generateExpenseCategoryTable(widths, cell, startDate, endDate, doc);
+
+            //If the number of months under study is under 12, generates graphs
+            if (numMonths < 12)
+            {
+                generateGraphs(doc);
+            }
+
+            //Closes the document creation
+            doc.Close();
+
+            //Attempts to open up the document in the native system application.
+            try
+            {
+                Process.Start(docPath);
+            }
+            catch
+            {
+                //If it couldn't be opened, informs the user
+                MessageBox.Show("Document couldn't be opened");
+            }
+        }
+
+        private void addCompanyInfoToDoc(Document doc, string dateExtension, string startDate, string endDate)
+        {
             //Adds in the title (Profit and Loss Statement for (Company Name)). Includes date of compilation and time span under question
             doc.Add(new Paragraph("  "));
             doc.Add(new Paragraph("Profit and Loss Statement for " + data.generalSettings[SharedData.COMPANY_NAME]));
@@ -650,23 +673,16 @@ namespace Moneta
             //Adds the company address and phone number to the doc. 
             doc.Add(new Paragraph(data.generalSettings[SharedData.COMPANY_ADDRESS]));
             doc.Add(new Paragraph("Phone: " + data.generalSettings[SharedData.COMPANY_PHONE_NUMBER]));
+        }
 
-            //Creates a new cell for the PDF tables, and defines its attributes
-            PdfPCell cell = new PdfPCell(new Phrase(""));
-            cell.Colspan = 3;
-            cell.HorizontalAlignment = 1;
-
-
-            /*************************************
-                        Statistics Table
-            *************************************/
+        private void generateBusinessStatsTable(float[] widths, PdfPCell cell, Document doc)
+        {
             //Creats a PDF table with 2 columns
             PdfPTable table = new PdfPTable(2);
             table.TotalWidth = 400f;
             table.LockedWidth = true;
 
             //Sets the widths of the table
-            float[] widths = new float[] { 10f, 3f};
             table.SetWidths(widths);
             table.HorizontalAlignment = 0;
 
@@ -702,14 +718,13 @@ namespace Moneta
 
             //Adds the table to the document
             doc.Add(table);
+        }
 
-
-            /*************************************
-                        Expenses Table
-            *************************************/
+        private void generateExpenseCategoryTable(float[] widths, PdfPCell cell, string startDate, string endDate, Document doc)
+        {
             //Creates pdf table with 2 columns
             PdfPTable expenseCategoryTable = new PdfPTable(2);
-            
+
             //Sets up table
             expenseCategoryTable.TotalWidth = 400f;
             expenseCategoryTable.LockedWidth = true;
@@ -731,110 +746,126 @@ namespace Moneta
             //Runs through all the expense categories
             for (int i = 0; i < data.expenseCategories.Count(); ++i)
             {
-                //Attempts to add a row to the table with the category name and value
-                try
-                {
-                    //Fills a cell with the name of the category
-                    expenseCategoryTable.AddCell(new Paragraph(data.expenseCategories[i]));
-
-                    //Calculates the expenses for that category by finding the sum of the expenses TotalAmount column with respect to that category
-                    double expenseCategorySum = Convert.ToDouble(frm.expensesDataSet.Tables["expenses"].Compute("SUM(TotalAmount)", "ExpenseCategory = '" + data.expenseCategories[i] + "' AND Date >= '" + startDate + "' AND Date <= '" + endDate + "'"));
-
-                    //Fills the expenses value column with the expense found, formatted as currency
-                    expenseCategoryTable.AddCell(new Paragraph(string.Format("{0:C}", expenseCategorySum)));
-                }
-                catch
-                {
-                    //Indicates there were no expenses for the category, and adds it into the table, formatted as currency
-                    double expenseCategorySum = 0;
-                    expenseCategoryTable.AddCell(new Paragraph(string.Format("{0:C}", expenseCategorySum)));
-                }
+                processExpenseCategory(expenseCategoryTable, i, startDate, endDate);
             }
 
             //Adds the expense table to the document
             doc.Add(expenseCategoryTable);
+        }
 
-            //If the number of months under study is under 12, generates graphs
-            if (numMonths < 12)
-            {
-                //Generates an array to store month names, as well as a current month index
-                string[] months = new string[numMonths];
-                int month = DateTime.Today.Month;
-
-                //Runss for the number of months being investigated
-                for (int i = 0; i < numMonths; ++i)
-                {
-                    //If the month hits 0 - resets it to 12
-                    if (month < 1)
-                    {
-                        month = 12;
-                    }
-
-                    //Determines the name of the month, in natural language from the index, and then reducecs the month by one
-                    months[i] = data.monthNameCulture.GetMonthName(month).ToString();
-                    --month;
-                }
-
-                //Clears the chart
-                frm.chrtPDFExport.Series.Clear();
-
-                //Creates the expenses series and adds in the values
-                frm.chrtPDFExport.Series.Add("Expenses");
-                frm.chrtPDFExport.Series[0].Points.DataBindXY(months, calculatePastMonthsExpenses(numMonths));
-                frm.chrtPDFExport.Series[0].ChartType = SeriesChartType.Bar;
-
-                //Creates the revenues series and adds in the valeus
-                frm.chrtPDFExport.Series.Add("Revenues");
-                frm.chrtPDFExport.Series[1].Points.DataBindXY(months, calculatePastMonthsRevenues(numMonths));
-                frm.chrtPDFExport.Series[1].ChartType = SeriesChartType.Bar;
-
-                //Creates a variable to store the chart image  in memory. Then converts to iTextSharp readable format
-                MemoryStream chartImage = new MemoryStream();
-                frm.chrtPDFExport.SaveImage(chartImage, ChartImageFormat.Png);
-                iTextSharp.text.Image chartExport = iTextSharp.text.Image.GetInstance(chartImage.GetBuffer());
-
-                //Sets the chart title, aligned center, and then adds onto pdf with the bar chart itself.
-                Paragraph chartTitle = new Paragraph("Monthly Expense/Revenue Stream");
-                chartTitle.Alignment = Element.ALIGN_CENTER;
-                doc.Add(chartTitle);
-                doc.Add(chartExport);
-
-                //Clears the entire chart of both series from above. Adds in a new profit/expense series, and fills it up with values.
-                frm.chrtPDFExport.Series.Clear();
-                frm.chrtPDFExport.Series.Add("Profit/Expense");
-                frm.chrtPDFExport.Series[0].Points.DataBindXY(new string[] { "Profit", "Expenses" }, new double[] { stats[PROFIT], stats[EXPENSES] });
-                frm.chrtPDFExport.Series[0].ChartType = SeriesChartType.Pie;
-
-                //Calculates the profit/expenses percentage and adds as labels to the valeus
-                double profitPercent = stats[PROFIT] / (stats[EXPENSES] + stats[PROFIT]) * 100d;
-                frm.chrtPDFExport.Series["Profit/Expense"].Points[0].AxisLabel = "Profit \n" + Math.Round(profitPercent, 2) + "%";
-                frm.chrtPDFExport.Series["Profit/Expense"].Points[1].AxisLabel = "Expense \n" + Math.Round(100 - profitPercent, 2) + "%";
-
-                //Creates a variable to store the chart image  in memory. Then converts to iTextSharp readable format
-                MemoryStream pieImage = new MemoryStream();
-                frm.chrtPDFExport.SaveImage(pieImage, ChartImageFormat.Png);
-                iTextSharp.text.Image pieExport = iTextSharp.text.Image.GetInstance(pieImage.GetBuffer());
-
-                //Sets the chart title, aligned center, and then adds onto pdf with the pie chart itself.
-                chartTitle = new Paragraph("Profit Expense Breakdown");
-                chartTitle.Alignment = Element.ALIGN_CENTER;
-                doc.Add(chartTitle);
-                doc.Add(pieExport);
-            }
-
-            //Closes the document creation
-            doc.Close();
-
-            //Attempts to open up the document in the native system application.
+        private void processExpenseCategory(PdfPTable expenseCategoryTable, int index, string startDate, string endDate)
+        {
+            //Attempts to add a row to the table with the category name and value
             try
             {
-                System.Diagnostics.Process.Start(docPath);
+                //Fills a cell with the name of the category
+                expenseCategoryTable.AddCell(new Paragraph(data.expenseCategories[index]));
+
+                //Calculates the expenses for that category by finding the sum of the expenses TotalAmount column with respect to that category
+                double expenseCategorySum =
+                    Convert.ToDouble(frm.expensesDataSet.Tables["expenses"].Compute("SUM(TotalAmount)",
+                        "ExpenseCategory = '" + data.expenseCategories[index] + "' AND Date >= '" + startDate + "' AND Date <= '" +
+                        endDate + "'"));
+
+                //Fills the expenses value column with the expense found, formatted as currency
+                expenseCategoryTable.AddCell(new Paragraph(string.Format("{0:C}", expenseCategorySum)));
             }
             catch
             {
-                //If it couldn't be opened, informs the user
-                MessageBox.Show("Document couldn't be opened");
+                //Indicates there were no expenses for the category, and adds it into the table, formatted as currency
+                double expenseCategorySum = 0;
+                expenseCategoryTable.AddCell(new Paragraph(string.Format("{0:C}", expenseCategorySum)));
             }
+        }
+
+        private void generateGraphs(Document doc)
+        {
+            generateMonthlyRevenueBarGraph(doc);
+            generateProfitExpensePieChart(doc);
+        }
+
+        private void generateProfitExpensePieChart(Document doc)
+        {
+            Paragraph chartTitle;
+            
+            //Clears the entire chart of both series from above. Adds in a new profit/expense series, and fills it up with values.
+            frm.chrtPDFExport.Series.Clear();
+            frm.chrtPDFExport.Series.Add("Profit/Expense");
+            frm.chrtPDFExport.Series[0].Points.DataBindXY(new[] {"Profit", "Expenses"}, new[] {stats[PROFIT], stats[EXPENSES]});
+            frm.chrtPDFExport.Series[0].ChartType = SeriesChartType.Pie;
+
+            //Calculates the profit/expenses percentage and adds as labels to the valeus
+            double profitPercent = stats[PROFIT]/(stats[EXPENSES] + stats[PROFIT])*100d;
+            frm.chrtPDFExport.Series["Profit/Expense"].Points[0].AxisLabel = "Profit \n" + Math.Round(profitPercent, 2) + "%";
+            frm.chrtPDFExport.Series["Profit/Expense"].Points[1].AxisLabel = "Expense \n" + Math.Round(100 - profitPercent, 2) +
+                                                                             "%";
+
+            //Creates a variable to store the chart image  in memory. Then converts to iTextSharp readable format
+            MemoryStream pieImage = new MemoryStream();
+            frm.chrtPDFExport.SaveImage(pieImage, ChartImageFormat.Png);
+            Image pieExport = Image.GetInstance(pieImage.GetBuffer());
+
+            //Sets the chart title, aligned center, and then adds onto pdf with the pie chart itself.
+            chartTitle = new Paragraph("Profit Expense Breakdown");
+            chartTitle.Alignment = Element.ALIGN_CENTER;
+            doc.Add(chartTitle);
+            doc.Add(pieExport);
+        }
+
+        private void generateMonthlyRevenueBarGraph(Document doc)
+        {
+            //Generates an array to store month names, as well as a current month index
+            string[] months = new string[numMonths];
+            int month = DateTime.Today.Month;
+
+            //Runs for the number of months being investigated
+            for (int i = 0; i < numMonths; ++i)
+            {
+                //If the month hits 0 - resets it to 12
+                if (month < 1)
+                {
+                    month = 12;
+                }
+
+                //Determines the name of the month, in natural language from the index, and then reducecs the month by one
+                months[i] = data.monthNameCulture.GetMonthName(month);
+                --month;
+            }
+
+            //Clears the chart
+            frm.chrtPDFExport.Series.Clear();
+
+            //Creates the expenses series and adds in the values
+            frm.chrtPDFExport.Series.Add("Expenses");
+            frm.chrtPDFExport.Series[0].Points.DataBindXY(months, calculatePastMonthsExpenses(numMonths));
+            frm.chrtPDFExport.Series[0].ChartType = SeriesChartType.Bar;
+
+            //Creates the revenues series and adds in the valeus
+            frm.chrtPDFExport.Series.Add("Revenues");
+            frm.chrtPDFExport.Series[1].Points.DataBindXY(months, calculatePastMonthsRevenues(numMonths));
+            frm.chrtPDFExport.Series[1].ChartType = SeriesChartType.Bar;
+
+            //Creates a variable to store the chart image  in memory. Then converts to iTextSharp readable format
+            MemoryStream chartImage = new MemoryStream();
+            frm.chrtPDFExport.SaveImage(chartImage, ChartImageFormat.Png);
+            Image chartExport = Image.GetInstance(chartImage.GetBuffer());
+
+            //Sets the chart title, aligned center, and then adds onto pdf with the bar chart itself.
+            Paragraph chartTitle = new Paragraph("Monthly Expense/Revenue Stream");
+            chartTitle.Alignment = Element.ALIGN_CENTER;
+            doc.Add(chartTitle);
+            doc.Add(chartExport);
+        }
+
+        private Image sourceAndScaleLogo()
+        {
+            //Opens the logo and scales to 100px in height
+            Image logo =
+                Image.GetInstance(data.databasePath + "//Images//" +
+                                                  data.generalSettings[SharedData.COMPANY_LOGO_PATH]);
+            float logoHeightMultiple = logo.Height/100f;
+            logo.ScaleAbsolute(logo.Width/logoHeightMultiple, logo.Height/logoHeightMultiple);
+            return logo;
         }
     }
 }
