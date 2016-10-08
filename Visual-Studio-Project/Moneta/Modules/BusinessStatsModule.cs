@@ -340,64 +340,39 @@ namespace Moneta
 
         //Pre: The start and end dates of the calculation.
         //Post: The money owed to the business is returned
-        //Description: Calculates the accounts payaable, by finding the invoices in the date range, which are unpaid, 
-        //             and then finding the sum of the item values for each of those invoices.
+        //Description: Calculates the accounts payaable, by finding sum of items of all unpaid invoices
         private double calculateAccountsReceivable(string startDate, string endDate)
         {
-            //Variables storing the sum of the amount receivable and the appropriate invoice ID
-            double sumReceivable = 0;
-            List<string> invoices = new List<string>();
+            string query = "SELECT SUM(Total) AS GrandTotal FROM "
+                + "(SELECT SUM(Price) AS Total, Invoices_InvoiceID AS InvoiceID FROM mydb.items AS items GROUP BY InvoiceID) AS itemTotals "
+                + "JOIN (SELECT InvoiceID FROM invoices WHERE invoices.Date >= @startDate AND invoices.Date <= @endDate AND invoices.Paid = 'No') AS invoices "
+                + " ON itemTotals.InvoiceID = invoices.InvoiceID;";
 
-            //Finds the invoice id of all unpaid invoices
-            string sql = "SELECT invoices.InvoiceID FROM invoices WHERE Paid = 'No';";
-
-            //Checks if connection is open, if not opens it up
+            //Checks if the sql connection is open, if not opens it up. 
             if (data.connection.State == ConnectionState.Closed)
             {
                 data.connection.Open();
             }
 
-            //Executes using the sql command from above and the sql connection
-            using (MySqlCommand command = new MySqlCommand(sql, data.connection))
+            using (MySqlCommand command = new MySqlCommand(query, data.connection))
             {
-                //Executes command
-                using (MySqlDataReader reader = command.ExecuteReader())
-                {
-                    //Reads for each result row
-                    while (reader.Read())
-                    {
-                        //Stores the invoice ID in a  list
-                        invoices.Add(reader["InvoiceID"].ToString());
-                    }
-                }
-            }
+                command.Parameters.AddWithValue("@startDate", startDate);
+                command.Parameters.AddWithValue("@endDate", endDate);
 
-            //Closes the connection
-            data.connection.Close();
-
-            //Runs for each invoice
-            for (int i = 0; i < invoices.Count; ++i)
-            {
-                //Opens the data connection
-                data.connection.Open();
-
-                //Funds the sum of the items within the invoice and stores in an object
-                MySqlCommand command = new MySqlCommand("SELECT SUM(Price) FROM items WHERE Invoices_invoiceID = " + invoices[i], data.connection);
-                object sumReceivableO = command.ExecuteScalar();
-
-                //Ensures that the object isn't null or empty
-                if (!string.IsNullOrEmpty(sumReceivableO.ToString()))
-                {
-                    //If not adds to the receivable sum
-                    sumReceivable += Convert.ToDouble(sumReceivableO.ToString());
-                }
-
-                //Closes the sql connection
+                string grandTotal = command.ExecuteScalar().ToString();
                 data.connection.Close();
-            }
 
-            //Returns the receivable sum
-            return sumReceivable;
+                //Sees if the object found isn't null or empty
+                if (!string.IsNullOrEmpty(grandTotal))
+                {
+                    //If not converts to double and adds to revenue
+                    return Convert.ToDouble(grandTotal);
+                }
+                else
+                {
+                    return -1;
+                }
+            }
         }
 
         //Pre: The start and end dates of the calculation.
