@@ -59,7 +59,7 @@
     </Win32Resource>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>116D060AF384719158789AE5274888D053824F39</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>1FFF2F071A884E74272A3CF0F19851B1BEAFD03F</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
     <ManifestKeyFile>Moneta_TemporaryKey.pfx</ManifestKeyFile>
