@@ -528,6 +528,8 @@ namespace Moneta
         //Description: Using the iTextSharp dll, creates a PDF of the doc, sourcing data from the invoices, items and clients database
         private void generateDoc(bool toEmail)
         {
+            updateExistingInvoice(null, null);
+
             //Ensures an invoice has been selected
             if (frm.lblInvoiceIDNum.Text != "Select an Invoice")
             {
@@ -851,6 +853,11 @@ namespace Moneta
                                        33, Element.ALIGN_LEFT | Element.ALIGN_TOP);
                     priceCol.Go();
 
+                    // Adds item footer image to document based on active theme
+                    iTextSharp.text.Image footer = iTextSharp.text.Image.GetInstance(Application.StartupPath + "\\Resources\\Invoices\\T" + data.invoiceTemplate + "\\T" + data.invoiceTemplate + "_Footer.JPG");
+                    footer.ScaleAbsolute(footer.Width * PAGE_SCALE_FACTOR, footer.Height * PAGE_SCALE_FACTOR);
+                    footer.SetAbsolutePosition(0, 0);
+                    doc.Add(footer);
 
                     // Adds total and comments image to document based on active theme
                     iTextSharp.text.Image totals = iTextSharp.text.Image.GetInstance(Application.StartupPath + "\\Resources\\Invoices\\T" + data.invoiceTemplate + "\\T" + data.invoiceTemplate + "_Totals.JPG");
@@ -880,11 +887,7 @@ namespace Moneta
                     totalsCol.Go();
 
 
-                    // Adds item footer image to document based on active theme
-                    iTextSharp.text.Image footer = iTextSharp.text.Image.GetInstance(Application.StartupPath + "\\Resources\\Invoices\\T" + data.invoiceTemplate + "\\T" + data.invoiceTemplate + "_Footer.JPG");
-                    footer.ScaleAbsolute(totals.Width * PAGE_SCALE_FACTOR, footer.Height * PAGE_SCALE_FACTOR);
-                    footer.SetAbsolutePosition(0, 0);
-                    doc.Add(footer);
+
                 }
                 catch (Exception ex)
                 {
