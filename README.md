@@ -10,7 +10,7 @@
 
 •	All data is stored natively on the user’s device, to ensure sensitive financial information is secure and confidential. The database will be handled through MySQL and local server would be setup through the installation of XAMPP. 
 
-#### Credits
+### Credits
 ##### ZipStorer
   Website: http://zipstorer.codeplex.com
    | Version: 2.35 (March 14, 2010)
