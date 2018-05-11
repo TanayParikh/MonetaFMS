@@ -1,6 +1,8 @@
-# MonetaFMS
+# MonetaFMS V1.0
 
-### Please see: http://www.monetafms.com
+## Please see V2.0: https://github.com/TanayParikh/Moneta
+
+---
 
 •	A complete financial management business suite, tracking business accounting, including modules for expenses, invoicing and business statistics.
 
